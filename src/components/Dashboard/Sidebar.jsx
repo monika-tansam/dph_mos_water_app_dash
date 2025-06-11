@@ -37,6 +37,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
       <style jsx="true">{`
         .sidebar {
           position: fixed;
+          margin-top:27px;
           top: 56px;
           left: 0;
           width: 250px;

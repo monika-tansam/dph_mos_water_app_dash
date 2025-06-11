@@ -23,7 +23,7 @@ const Header = ({ toggleSidebar }) => {
 
   return (
     <nav className="navbar navbar-light bg-light px-3 shadow-sm">
-      <div className="container-fluid d-flex align-items-center justify-content-between">
+       <div className="d-flex align-items-center justify-content-between w-100 px-3" style={{ height: '60px' }}>
         <div className="d-flex align-items-center gap-2">
           <button
             className="btn btn-outline-secondary d-md-none me-2"
@@ -32,22 +32,22 @@ const Header = ({ toggleSidebar }) => {
           >
             &#9776;
           </button>
-          <img
-            src="/DPH_Logo.webp"
-            alt="Logo 1"
-            style={{ height: "50px", width: "50px" }}
-          />
-          <img
-            src="/Logo2.png"
-            alt="Logo 2"
-            style={{ height: "50px", width: "70px" }}
-          />
         </div>
-
+        
+          <img
+             src="/DPH_Logo.webp"
+             alt="Logo 1"
+             style={{ height: "50px", width: "50px" }}
+          />
         <div className="flex-grow-1 text-center">
           <h4 className="mb-0">DPH Dashboard</h4>
         </div>
-
+        <div className="d-flex align-items-center gap-3">
+         <img
+              src="/Logo2.png"
+              alt="Logo 2"
+              style={{ height: "50px", width: "70px" }}
+          />
         <div ref={dropdownRef} className="position-relative">
              <button
                  className="btn btn-secondary dropdown-toggle d-flex align-items-center"
@@ -85,6 +85,8 @@ const Header = ({ toggleSidebar }) => {
           )}
         </div>
       </div>
+      </div>
+      
     </nav>
   );
 };

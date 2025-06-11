@@ -51,63 +51,78 @@ function LoginForm() {
 
   return (
     <div
+  style={{
+    backgroundImage: "url('/loginbg1.jpg')",
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+     backgroundRepeat: 'no-repeat',
+    backgroundAttachment: 'fixed',
+    minHeight: '90vh',
+    width: '100vw',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden', // Prevents horizontal scrolling
+  }}
+>
+
+  <Header />
+
+  <div className="d-flex justify-content-center align-items-center vh-100 px-3">
+    <div
+      className="card p-4 shadow-lg w-100"
       style={{
-        backgroundImage: "url('/loginbg1.jpg')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        minHeight: '100vh',
-        width: '100%',
+        maxWidth: '400px',
+        backdropFilter: 'blur(10px)',
+        backgroundColor: 'rgba(255,255,255,0.85)',
+        fontFamily:"Nunito Sans",
       }}
     >
-      <Header />
+      <h4 className="mb-3 text-center">Login</h4>
 
-      <div className="d-flex justify-content-center align-items-center vh-100">
-        <div className="card p-4 shadow-lg" style={{ width: '350px', backdropFilter: 'blur(10px)', backgroundColor: 'rgba(255,255,255,0.85)', fontfamily: 'Poppins'}}>
-          <h4 className="mb-3 text-center">Login</h4>
-
-          <form onSubmit={handleLogin}>
-            <div className="mb-3">
-              <label className="form-label">Username:</label>
-              <input
-                type="text"
-                className="form-control"
-                name="username"
-                value={form.username}
-                onChange={handleChange}
-                placeholder="Enter username"
-              />
-            </div>
-
-            <div className="mb-3">
-              <label className="form-label">Password:</label>
-              <input
-                type="password"
-                className="form-control"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                placeholder="Enter password"
-              />
-            </div>
-
-            <div className="mb-3 text-end">
-              <a href="/forgetpass" className="text-decoration-none small">
-                Forgot password?
-              </a>
-            </div>
-
-            <div className="mb-3 d-flex justify-content-center">
-              <ReCAPTCHA sitekey={SITE_KEY} onChange={handleCaptcha} />
-            </div>
-
-            <button type="submit" className="btn btn-primary w-100">
-              Login
-            </button>
-          </form>
+      <form onSubmit={handleLogin}>
+        <div className="mb-3">
+          <label className="form-label">Username:</label>
+          <input
+            type="text"
+            className="form-control"
+            name="username"
+            value={form.username}
+            onChange={handleChange}
+            placeholder="Enter username"
+          />
         </div>
-        <ToastContainer position="top-center" autoClose={3000} />
-      </div>
+
+        <div className="mb-3">
+          <label className="form-label">Password:</label>
+          <input
+            type="password"
+            className="form-control"
+            name="password"
+            value={form.password}
+            onChange={handleChange}
+            placeholder="Enter password"
+          />
+        </div>
+
+        <div className="mb-3 text-end">
+          <a href="/forgetpass" className="text-decoration-none small">
+            Forgot password?
+          </a>
+        </div>
+
+        <div className="mb-3 d-flex justify-content-center">
+          <ReCAPTCHA sitekey={SITE_KEY} onChange={handleCaptcha} />
+        </div>
+
+        <button type="submit" className="btn btn-primary w-100">
+          Login
+        </button>
+      </form>
     </div>
+    <ToastContainer position="top-center" autoClose={3000} />
+  </div>
+</div>
+
   );
 }
 
