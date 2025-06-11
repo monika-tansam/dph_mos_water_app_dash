@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import '../Styles/ForgetPassword.css';
-
+import '../Styles/Dashboard/ForgetPassword.css';
+import Header from './AuthHeader';
 const ForgetPassword = () => {
   const [step, setStep] = useState("otp"); 
   const [otp, setOtp] = useState("");
@@ -45,6 +45,17 @@ const ForgetPassword = () => {
   };
 
   return (
+    <div
+      style={{
+        backgroundImage: "url('/loginbg1.jpg')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        minHeight: '100vh',
+        width: '100%',
+      }}
+    >
+    <div>
+      <Header/>
     <div className="container mt-5" style={{ maxWidth: "400px" }}>
       <h3 className="text-center mb-4">Forgot Password</h3>
 
@@ -100,6 +111,8 @@ const ForgetPassword = () => {
         </form>
       )}
       <ToastContainer position="top-center" autoClose={3000} />
+    </div>
+    </div>
     </div>
   );
 };
