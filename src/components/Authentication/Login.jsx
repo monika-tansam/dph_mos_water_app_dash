@@ -55,7 +55,7 @@ function LoginForm() {
 
         <form onSubmit={handleLogin}>
           <div className="mb-3">
-            <label className="form-label">Username</label>
+            <label className="form-label">Username:</label>
             <input
               type="text"
               className="form-control"
@@ -67,7 +67,7 @@ function LoginForm() {
           </div>
 
           <div className="mb-3">
-            <label className="form-label">Password</label>
+            <label className="form-label">Password:</label>
             <input
               type="password"
               className="form-control"
