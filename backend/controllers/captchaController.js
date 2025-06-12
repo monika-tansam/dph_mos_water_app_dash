@@ -1,4 +1,4 @@
-const svgCaptcha = require('svg-captcha');
+import svgCaptcha from 'svg-captcha';
 
 // Temporary store for captcha text (in-memory)
 let currentCaptcha = '';
@@ -21,4 +21,4 @@ const validateCaptcha = (inputCaptcha) => {
     return inputCaptcha && inputCaptcha === currentCaptcha;
 };
 
-module.exports = { getCaptcha, validateCaptcha };
+export default { getCaptcha, validateCaptcha };

@@ -1,4 +1,4 @@
-const sendOTPEmail = require('../utils/sendMail');
+import sendOTPEmail from '../utils/sendMail.js';
 
 const users = [
     { userId: 'karthi@example.com', password: 'nodejs123' }
@@ -33,6 +33,7 @@ const handleForgotPassword = async (req, res) => {
         await sendOTPEmail('karthikeyan.ravi1127@gmail.com', otp); // send to userId (email)
         res.status(200).json({ message: 'OTP sent to your email.' });
     } catch (err) {
+        console.error('Failed to send OTP email:', err);
         res.status(500).json({ message: 'Failed to send OTP email.' });
     }
 };
@@ -66,7 +67,7 @@ const verifyOTP = (req, res) => {
     res.status(200).json({ message: 'OTP verified successfully!' });
 };
 
-module.exports = {
+export default {
     handleForgotPassword,
     verifyOTP
 };

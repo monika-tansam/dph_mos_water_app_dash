@@ -1,11 +1,9 @@
-const express = require('express');
+import express from 'express';
+import forgotPasswordController from '../controllers/forgotPasswordController.js';
+
 const router = express.Router();
-const {
-    handleForgotPassword,
-    verifyOTP
-} = require('../controllers/forgotPasswordController');
 
-router.post('/', handleForgotPassword);
-router.post('/verify', verifyOTP);
+router.post('/', forgotPasswordController.handleForgotPassword);
+router.post('/verify', forgotPasswordController.verifyOTP);
 
-module.exports = router;
+export default router;

@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import captchaController from '../controllers/captchaController.js';
+
 const router = express.Router();
-const { getCaptcha } = require('../controllers/captchaController');
 
-router.get('/', getCaptcha);
+router.get('/', captchaController.getCaptcha);
 
-module.exports = router;
+export default router;

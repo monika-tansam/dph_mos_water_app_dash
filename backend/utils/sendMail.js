@@ -1,4 +1,4 @@
-const nodemailer = require('nodemailer');
+import nodemailer from 'nodemailer';
 
 const sendOTPEmail = async (toEmail, otp) => {
     // Replace these values with your actual SMTP info
@@ -26,9 +26,9 @@ const sendOTPEmail = async (toEmail, otp) => {
         await transporter.sendMail(mailOptions);
         console.log(`✅ OTP email sent to ${toEmail}`);
     } catch (error) {
-        console.error('❌ Failed to send email:', error);
+        console.error('Failed to send email:', error);
         throw new Error('Email sending failed');
     }
 };
 
-module.exports = sendOTPEmail;
+export default sendOTPEmail;
