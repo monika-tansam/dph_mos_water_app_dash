@@ -1,7 +1,7 @@
 //import validateCaptcha from './captchaController.js';
 
 const users = [
-    { username: 'karthi@example.com', password: 'nodejs123' },
+    { username: 'karthi@example.com', password: 'Nodejs@123' },
     { username: 'admin@example.com', password: 'admin@123' }
 ];
 

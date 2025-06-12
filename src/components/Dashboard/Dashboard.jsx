@@ -50,8 +50,8 @@ const Dashboard = () => {
        <TamilNaduMap />
      </div>
 
-      {/* From and To Date Pickers */}
-      <div className="d-flex align-items-center justify-content-between mb-4 gap-3">
+      
+      <div className="d-flex align-items-center mb-4 gap-3">
         <div>
           <label htmlFor="fromDate" className="form-label me-2">
             From:
@@ -62,7 +62,7 @@ const Dashboard = () => {
             value={fromDate}
             onChange={(e) => setFromDate(e.target.value)}
             className="form-control"
-            style={{ maxWidth: "180px" }}
+            style={{ maxWidth: "180px"}}
           />
         </div>
 
@@ -83,9 +83,10 @@ const Dashboard = () => {
         </div>
 
         {/* Download Dropdown */}
-        <div className="dropdown">
+        <div className="dropdown mt-4">
           <button
             className="btn btn-primary dropdown-toggle"
+            style={{ height: "47px", paddingTop: "2px", paddingBottom: "2px", fontSize: "0.95rem" }}
             onClick={toggleDownloadDropdown}
             aria-expanded={downloadDropdownOpen}
           >
@@ -94,7 +95,8 @@ const Dashboard = () => {
           {downloadDropdownOpen && (
             <ul
               className="dropdown-menu dropdown-menu-end show"
-              style={{ position: "absolute" }}
+              style={{ position: "absolute", 
+              }}
             >
               {["csv", "pdf", "excel", "doc"].map((format) => (
                 <li key={format}>

@@ -99,6 +99,7 @@ function LoginForm() {
       <h4 className="mb-3 text-center">Login</h4>
 
       <form onSubmit={handleLogin}>
+      <label className="form-label">Username:</label>
         <div className="mb-3">
           <input
             type="text"

@@ -1,87 +1,94 @@
 import React from "react";
+import {
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+} from "@mui/material";
+import HomeIcon from "@mui/icons-material/Home";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import SettingsIcon from "@mui/icons-material/Settings";
 
 const Sidebar = ({ isOpen, closeSidebar }) => {
+  const navItems = [
+    { text: "Home", icon: <HomeIcon />, href: "/home" },
+    { text: "State", icon: <DashboardIcon />, href: "#profile" },
+    { text: "Settings", icon: <SettingsIcon />, href: "#settings" },
+  ];
+
+  const drawerStyles = {
+    boxSizing: "border-box",
+    width: 250,
+    marginTop: "67px",
+    backgroundColor: "#f9f9f9", // light gray for better contrast on white
+    color: "#333",
+    borderRight: "1px solid #e0e0e0",
+  };
+
+  const listItemButtonStyle = {
+    "&:hover": {
+      backgroundColor: "#e3f2fd", // light blue hover
+      color: "#1976d2", // primary blue text on hover
+      "& .MuiListItemIcon-root": {
+        color: "#1976d2",
+      },
+    },
+  };
+
   return (
     <>
-      <div
-        className={`sidebar-overlay ${isOpen ? "show" : ""}`}
-        onClick={closeSidebar}
-      ></div>
-
-      <aside
-        className={`sidebar bg-white shadow-sm ${
-          isOpen ? "sidebar-open" : ""
-        }`}
+      {/* Mobile Drawer */}
+      <Drawer
+        anchor="left"
+        open={isOpen}
+        onClose={closeSidebar}
+        sx={{
+          display: { xs: "block", md: "none" },
+          "& .MuiDrawer-paper": drawerStyles,
+        }}
       >
-        <div className="p-3">
-          <ul className="nav flex-column">
-            <li className="nav-item mb-2">
-              <a href="/home" className="nav-link text-dark">
-                Home
-              </a>
-            </li>
-            <li className="nav-item mb-2">
-              <a href="#profile" className="nav-link text-dark">
-                Profile
-              </a>
-            </li>
-            <li className="nav-item mb-2">
-              <a href="#settings" className="nav-link text-dark">
-                Settings
-              </a>
-            </li>
-          </ul>
-        </div>
-      </aside>
+        <List>
+          {navItems.map((item, index) => (
+            <ListItem key={index} disablePadding>
+              <ListItemButton
+                component="a"
+                href={item.href}
+                onClick={closeSidebar}
+                sx={listItemButtonStyle}
+              >
+                <ListItemIcon sx={{ color: "#666" }}>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+      </Drawer>
 
-      <style jsx="true">{`
-        .sidebar {
-          position: fixed;
-          margin-top:27px;
-          top: 56px;
-          left: 0;
-          width: 250px;
-          height: calc(100vh - 56px);
-          overflow-y: auto;
-          background: white;
-          box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-          transform: translateX(-100%);
-          transition: transform 0.3s ease-in-out;
-          z-index: 1050;
-        }
-        .sidebar-open {
-          transform: translateX(0);
-        }
-        .sidebar-overlay {
-          position: fixed;
-          top: 56px;
-          left: 0;
-          width: 100vw;
-          height: calc(100vh - 56px);
-          background: rgba(0, 0, 0, 0.3);
-          opacity: 0;
-          visibility: hidden;
-          transition: opacity 0.3s ease-in-out;
-          z-index: 1040;
-        }
-        .sidebar-overlay.show {
-          opacity: 1;
-          visibility: visible;
-        }
-        @media (min-width: 768px) {
-          .sidebar {
-            transform: translateX(0);
-            position: fixed;
-            top: 56px;
-            left: 0;
-            height: calc(100vh - 56px);
-            z-index: 1050;
-          }
-          .sidebar-overlay {
-            display: none;
-          }
-        }
-      `}</style>
+     
+      <Drawer
+        variant="permanent"
+        open
+        sx={{
+          display: { xs: "none", md: "block" },
+          "& .MuiDrawer-paper": {
+            ...drawerStyles,
+            marginTop: "82px",
+          },
+        }}
+      >
+        <List>
+          {navItems.map((item, index) => (
+            <ListItem key={index} disablePadding>
+              <ListItemButton component="a" href={item.href} sx={listItemButtonStyle}>
+                <ListItemIcon sx={{ color: "#666" }}>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+      </Drawer>
     </>
   );
 };

@@ -14,7 +14,7 @@ app.use(cors({
 app.use(express.json());
 
 app.use(session({
-    secret: 'your-secret-key', // use env var in production
+    secret: 'your-secret-key', 
     resave: false,
     saveUninitialized: true,
     cookie: { maxAge: 5 * 60 * 1000 } // 5 minutes
