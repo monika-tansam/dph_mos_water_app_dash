@@ -21,7 +21,7 @@ function LoginForm() {
     setCaptchaVerified(!!value);
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     const { username, password } = form;
 
@@ -45,8 +45,27 @@ function LoginForm() {
       return;
     }
 
-    toast.success('Login successful!');
-    setTimeout(() => navigate('/home'), 2000);
+    try {
+      const response = await fetch('http://localhost:3000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+        credentials: 'include', // include cookies for session if needed
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('Login successful!');
+        setTimeout(() => navigate('/home'), 2000);
+      } else {
+        toast.error(data.message || 'Login failed');
+      }
+    } 
+    catch (error) {
+      console.error(error);
+      toast.error('Network error');
+    }
   };
 
   return (
@@ -81,7 +100,6 @@ function LoginForm() {
 
       <form onSubmit={handleLogin}>
         <div className="mb-3">
-          <label className="form-label">Username:</label>
           <input
             type="text"
             className="form-control"

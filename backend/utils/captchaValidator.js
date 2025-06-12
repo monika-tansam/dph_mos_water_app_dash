@@ -5,5 +5,5 @@ const validateCaptcha = (captcha) => {
     return captcha === validCaptcha;
 };
 
-module.exports = validateCaptcha;
+export default validateCaptcha;
     

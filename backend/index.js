@@ -1,10 +1,16 @@
-const express = require('express');
-const session = require('express-session');
-const app = express();
-const loginRoute = require('./routes/login');
-const captchaRoute = require('./routes/captcha');
-const forgotPasswordRoute = require('./routes/forgotPassword');
+import express from 'express';
+import session from 'express-session';
+import cors from 'cors';
+import loginRoute from './routes/login.js';
+import captchaRoute from './routes/captcha.js';
+import forgotPasswordRoute from './routes/forgotPassword.js';
 
+const app = express();
+
+app.use(cors({
+    origin: 'http://localhost:5173', // your frontend URL
+    credentials: true
+}));
 app.use(express.json());
 
 app.use(session({
@@ -15,7 +21,7 @@ app.use(session({
 }));
 
 app.use('/login', loginRoute);
-app.use('/captcha', captchaRoute); // GET /captcha returns SVG image
+app.use('/captcha', captchaRoute);
 app.use('/forgot-password', forgotPasswordRoute);
 
 const PORT = 3000;
