@@ -18,7 +18,7 @@ const Dashboard = () => {
   nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
 
   // State for 'From' and 'To' dates
-  const [fromDate, setFromDate] = useState("");  // no default, user chooses freely
+  const [fromDate, setFromDate] = useState("");  
   const [toDate, setToDate] = useState(formatDate(nextMonthDate));
 
   const [downloadDropdownOpen, setDownloadDropdownOpen] = useState(false);

@@ -6,33 +6,62 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Box,
+  Divider,
 } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import SettingsIcon from "@mui/icons-material/Settings";
+import LogoutIcon from "@mui/icons-material/Logout";
+import BarChartIcon from "@mui/icons-material/BarChart";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const Sidebar = ({ isOpen, closeSidebar }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const navItems = [
     { text: "Home", icon: <HomeIcon />, href: "/home" },
-    { text: "State", icon: <DashboardIcon />, href: "#profile" },
-    { text: "Settings", icon: <SettingsIcon />, href: "#settings" },
+    { text: "State", icon: <DashboardIcon />, href: "/state" },
+    { text: "Data Collection", icon: <BarChartIcon />, href: "/data" },
   ];
+
+  const handleLogout = () => {
+    navigate("/"); // Navigate to home
+  };
 
   const drawerStyles = {
     boxSizing: "border-box",
     width: 250,
-    marginTop: "67px",
-    backgroundColor: "#f9f9f9", // light gray for better contrast on white
+    backgroundColor: "#f5f5f5",
     color: "#333",
     borderRight: "1px solid #e0e0e0",
+    display: "flex",
+    flexDirection: "column",
+    height: "100vh",
+    paddingTop: "67px",
   };
 
   const listItemButtonStyle = {
     "&:hover": {
-      backgroundColor: "#e3f2fd", // light blue hover
-      color: "#1976d2", // primary blue text on hover
+      backgroundColor: "#e3f2fd",
+      color: "#1976d2",
       "& .MuiListItemIcon-root": {
         color: "#1976d2",
+      },
+    },
+  };
+
+  const logoutButtonStyle = {
+    color: "#d32f2f",
+    "& .MuiListItemIcon-root": {
+      color: "#d32f2f",
+    },
+    "&:hover": {
+      backgroundColor: "#ffebee",
+      color: "#b71c1c",
+      "& .MuiListItemIcon-root": {
+        color: "#b71c1c",
       },
     },
   };
@@ -49,45 +78,78 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
           "& .MuiDrawer-paper": drawerStyles,
         }}
       >
-        <List>
-          {navItems.map((item, index) => (
-            <ListItem key={index} disablePadding>
-              <ListItemButton
-                component="a"
-                href={item.href}
-                onClick={closeSidebar}
-                sx={listItemButtonStyle}
-              >
-                <ListItemIcon sx={{ color: "#666" }}>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.text} />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
+        <Box sx={{ flexGrow: 1 }}>
+          <List>
+            {navItems.map((item, index) => (
+              <ListItem key={index} disablePadding>
+                <ListItemButton
+                  component="a"
+                  href={item.href}
+                  onClick={closeSidebar}
+                  sx={listItemButtonStyle}
+                  selected={location.pathname === item.href}
+                >
+                  <ListItemIcon sx={{ color: "#666" }}>
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText primary={item.text} />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+        <Divider />
+        <Box>
+          <ListItem disablePadding>
+            <ListItemButton onClick={handleLogout} sx={logoutButtonStyle}>
+              <ListItemIcon>
+                <LogoutIcon />
+              </ListItemIcon>
+              <ListItemText primary="Logout" />
+            </ListItemButton>
+          </ListItem>
+        </Box>
       </Drawer>
 
-     
+      {/* Desktop Drawer */}
       <Drawer
         variant="permanent"
         open
         sx={{
           display: { xs: "none", md: "block" },
-          "& .MuiDrawer-paper": {
-            ...drawerStyles,
-            marginTop: "82px",
-          },
+          "& .MuiDrawer-paper": drawerStyles,
         }}
       >
-        <List>
-          {navItems.map((item, index) => (
-            <ListItem key={index} disablePadding>
-              <ListItemButton component="a" href={item.href} sx={listItemButtonStyle}>
-                <ListItemIcon sx={{ color: "#666" }}>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.text} />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
+        <Box sx={{ flexGrow: 1 }}>
+          <List>
+            {navItems.map((item, index) => (
+              <ListItem key={index} disablePadding>
+                <ListItemButton
+                  component="a"
+                  href={item.href}
+                  sx={listItemButtonStyle}
+                  selected={location.pathname === item.href}
+                >
+                  <ListItemIcon sx={{ color: "#666" }}>
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText primary={item.text} />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+        <Divider />
+        <Box>
+          <ListItem disablePadding>
+            <ListItemButton onClick={handleLogout} sx={logoutButtonStyle}>
+              <ListItemIcon>
+                <LogoutIcon />
+              </ListItemIcon>
+              <ListItemText primary="Logout" />
+            </ListItemButton>
+          </ListItem>
+        </Box>
       </Drawer>
     </>
   );

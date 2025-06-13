@@ -65,7 +65,7 @@ const Header = ({ toggleSidebar }) => {
             }}
           >
             <MenuItem onClick={handleEditUser}>Profile</MenuItem>
-            {/* Logout removed */}
+           
           </Menu>
         </div>
       </div>
