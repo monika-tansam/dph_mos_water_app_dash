@@ -37,14 +37,14 @@ const Header = ({ toggleSidebar }) => {
           </IconButton>
         </div>
 
-        <img src="/DPH_Logo.webp" alt="Logo 1" style={{ height: "50px", width: "50px" }} />
+        <img src="/Logo2.png" alt="Logo 1" style={{ height: "64px", width: "90px" }} />
 
         <div className="flex-grow-1 text-center">
           <h4 className="mb-0">DPH Dashboard</h4>
         </div>
 
         <div className="d-flex align-items-center gap-3">
-          <img src="/Logo2.png" alt="Logo 2" style={{ height: "50px", width: "70px" }} />
+          <img src="/DPH_Logo.webp" alt="Logo 2" style={{ height: "63px", width: "70px" }} />
 
           <Tooltip title="Account settings">
             <IconButton onClick={handleClick} size="small" sx={{ ml: 2 }}>

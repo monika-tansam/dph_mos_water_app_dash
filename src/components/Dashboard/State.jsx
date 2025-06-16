@@ -11,7 +11,12 @@ import {
   Button,
   Stack,
   TextField,
-  InputAdornment
+  InputAdornment,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton
 } from "@mui/material";
 import {
   PieChart,
@@ -38,8 +43,9 @@ import {
   LastPage,
   Search as SearchIcon
 } from "@mui/icons-material";
+import AddIcon from '@mui/icons-material/Add';
 
-const COLORS = ["#27ae60", "#e53935"]; // Neat green for Active, red for Inactive
+const COLORS = ["#27ae60", "#e53935"];
 
 const sampleData = {
   Today: { active: 30, inactive: 10 },
@@ -120,6 +126,15 @@ const UserStats = () => {
   const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({
+    userid: '',
+    username: '',
+    adhaarnumber: '',
+    phonenumber: '',
+    address: '',
+  });
+  const [adhaarError, setAdhaarError] = useState('');
 
   const active = sampleData[filter].active;
   const inactive = sampleData[filter].inactive;
@@ -147,13 +162,33 @@ const UserStats = () => {
     page * pageSize + pageSize
   );
 
+  // Adhaar validation function (12 digits)
+  const validateAdhaar = (value) => /^\d{12}$/.test(value);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    if (e.target.name === 'adhaarnumber') {
+      setAdhaarError(validateAdhaar(e.target.value) ? '' : 'Adhaar must be 12 digits');
+    }
+  };
+
+  const handleSubmit = () => {
+    if (!validateAdhaar(form.adhaarnumber)) {
+      setAdhaarError('Adhaar must be 12 digits');
+      return;
+    }
+    // Add user logic here (e.g., update state or call API)
+    setOpen(false);
+    setForm({ userid: '', username: '', adhaarnumber: '', ohinenumber: '', address: '' });
+  };
+
   return (
     <DashboardLayout>
       <Card sx={{ p: 3, borderRadius: 3, backgroundColor: "#f9f9f9", boxShadow: "0 4px 12px rgba(0,0,0,0.08)", fontFamily: "Poppins, sans-serif" }}>
         <CardContent>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
             <Typography variant="h5" sx={{ fontWeight: 600, color: "#333" }}>
-                State Users Statistics
+               STATE USERS STATISTICS
             </Typography>
             <Select
               size="small"
@@ -210,9 +245,36 @@ const UserStats = () => {
       </Card>
 
       <Box mt={4} sx={{ background: "#fff", borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)", p: 2 }}>
-        <Typography variant="h6" sx={{ fontFamily: "Poppins", fontWeight: 600, mb: 2 }}>
-          State Users List
+        <Typography
+          variant="h6"
+          sx={{
+            fontFamily: "Nunito, Poppins, sans-serif", 
+            fontWeight: 600,
+            mb: 2
+          }}
+        >
+          STATE USERS LIST
         </Typography>
+
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          {/* Search Bar */}
+          <TextField
+            variant="outlined"
+            placeholder="Search users"
+            size="small"
+            sx={{ width: 300 }}
+          />
+
+          {/* Add User Button */}
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setOpen(true)}
+            sx={{ fontFamily: "Nunito, Poppins, sans-serif" }}
+          >
+            Add User
+          </Button>
+        </Box>
 
         <Grid container spacing={2} sx={{ mb: 2 }}>
           <Grid item xs={12} sm={8}>
@@ -301,6 +363,59 @@ const UserStats = () => {
           />
         </div>
       </Box>
+
+      {/* Add User Dialog */}
+      <Dialog open={open} onClose={() => setOpen(false)}>
+        <DialogTitle>Add User</DialogTitle>
+        <DialogContent>
+          <TextField
+            margin="dense"
+            label="User ID"
+            name="userid"
+            fullWidth
+            value={form.userid}
+            onChange={handleChange}
+          />
+          <TextField
+            margin="dense"
+            label="Username"
+            name="username"
+            fullWidth
+            value={form.username}
+            onChange={handleChange}
+          />
+          <TextField
+            margin="dense"
+            label="Adhaar Number"
+            name="adhaarnumber"
+            fullWidth
+            value={form.adhaarnumber}
+            onChange={handleChange}
+            error={!!adhaarError}
+            helperText={adhaarError}
+          />
+          <TextField
+            margin="dense"
+            label="Phone Number"
+            name="phonenumber"
+            fullWidth
+            value={form.ohinenumber}
+            onChange={handleChange}
+          />
+          <TextField
+            margin="dense"
+            label="Address"
+            name="address"
+            fullWidth
+            value={form.address}
+            onChange={handleChange}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpen(false)}>Cancel</Button>
+          <Button onClick={handleSubmit} variant="contained">Add</Button>
+        </DialogActions>
+      </Dialog>
     </DashboardLayout>
   );
 };

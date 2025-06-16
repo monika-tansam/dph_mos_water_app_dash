@@ -8,12 +8,14 @@ import {
   ListItemText,
   Box,
   Divider,
+  Typography,
 } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import SettingsIcon from "@mui/icons-material/Settings";
 import LogoutIcon from "@mui/icons-material/Logout";
 import BarChartIcon from "@mui/icons-material/BarChart";
+import MenuIcon from "@mui/icons-material/Menu";
+import IconButton from "@mui/material/IconButton";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const Sidebar = ({ isOpen, closeSidebar }) => {
@@ -151,6 +153,31 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
           </ListItem>
         </Box>
       </Drawer>
+
+      {/* Header with Hamburger Menu Icon */}
+      <Box
+        sx={{
+          display: "flex", // Always flex, so always visible
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
+        <IconButton
+          edge="start"
+          color="inherit"
+          aria-label="menu"
+          sx={{ mr: 2 }}
+          onClick={() => {
+            // Add your drawer/menu open logic here
+            alert("Hamburger menu clicked!");
+          }}
+        >
+          <MenuIcon />
+        </IconButton>
+        <Typography variant="h6" sx={{ flexGrow: 1 }}>
+          Dashboard
+        </Typography>
+      </Box>
     </>
   );
 };
