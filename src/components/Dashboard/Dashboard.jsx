@@ -3,9 +3,9 @@ import DashboardLayout from "./DashboardLayout";
 import TamilNaduMap from "./TamilNadu";
 
 const dataBoxes = [
-  { title: "Overall Report", number: 1200 },
+  { title: "Overall Report", number: 200 },
   { title: "DHP Report", number: 300 },
-  { title: "Monthly Report", number: 520 },
+  { title: "Monthly Report", number: 20 },
   { title: "Feedback", number: 48 },
 ];
 
