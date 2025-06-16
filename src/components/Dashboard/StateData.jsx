@@ -415,7 +415,7 @@ export default function UserTable() {
             fontWeight:600,
             color: "#1976d2",
             fontSize: { xs: 16, sm: 20 },
-            textAlign: { xs: "center", sm: "left" },
+            textAlign: { xs: "center"},
           }}
         >
           DATA COLLECTED (District-wise Information)
@@ -443,12 +443,13 @@ export default function UserTable() {
             >
               Select Districts :
             </Typography>
-            <FormControl sx={{ minWidth: 180 }}>
-              <InputLabel id="district-select-label">District</InputLabel>
+            <FormControl sx={{ minWidth: 180, minHeight: 30 }}>
               <Select
+                sx={{ minHeight: 30, height: 30, padding: 0 }}
                 labelId="district-select-label"
                 value={districtFilter}
                 label="District"
+                placeholder="Select District"
                 onChange={(e) => setDistrictFilter(e.target.value)}
               >
                 <MenuItem value="">All Districts</MenuItem>
