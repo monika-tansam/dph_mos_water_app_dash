@@ -41,7 +41,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
     display: "flex",
     flexDirection: "column",
     height: "100vh",
-    paddingTop: "67px",
+    paddingTop: "97px",
   };
 
   const listItemButtonStyle = {
