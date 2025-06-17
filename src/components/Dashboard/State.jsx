@@ -43,7 +43,6 @@ import {
   LastPage,
   Search as SearchIcon
 } from "@mui/icons-material";
-import AddIcon from '@mui/icons-material/Add';
 
 const COLORS = ["#27ae60", "#e53935"];
 
@@ -75,6 +74,16 @@ const allUsers = Array.from({ length: 40 }, (_, i) => ({
   status: i % 2 === 0 ? "Active" : "Inactive"
 }));
 
+const columns = [
+  { field: "id", headerName: "ID", width: 90 },
+  { field: "username", headerName: "Username", width: 150 },
+  { field: "adhaarnumber", headerName: "Adhaar Number", width: 150 },
+ 
+  { field: "phonenumber", headerName: "Phone Number", width: 150 },
+  { field: "address", headerName: "Address", width: 200 },
+  { field: "status", headerName: "Status", width: 120 },
+];
+
 const userColumns = [
   { field: "userId", headerName: "User ID", flex: 1 },
   { field: "district", headerName: "District", flex: 1 },
@@ -86,7 +95,7 @@ const userColumns = [
     renderCell: (params) => (
       <Typography
         sx={{
-          color: params.value === "Active" ? "#27ae60" : "#e53935", // Royal green for Active, red for Inactive
+          color: params.value === "Active" ? "#27ae60" : "#e53935", 
           fontWeight: "bold"
         }}
       >
@@ -127,12 +136,13 @@ const UserStats = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [open, setOpen] = useState(false);
+  const [users, setUsers] = useState([]);
   const [form, setForm] = useState({
-    userid: '',
-    username: '',
-    adhaarnumber: '',
-    phonenumber: '',
-    address: '',
+    username: "",
+    adhaarnumber: "",
+    ohinenumber: "",
+    address: "",
+    phonenumber: "",
   });
   const [adhaarError, setAdhaarError] = useState('');
 
@@ -162,7 +172,7 @@ const UserStats = () => {
     page * pageSize + pageSize
   );
 
-  // Adhaar validation function (12 digits)
+  
   const validateAdhaar = (value) => /^\d{12}$/.test(value);
 
   const handleChange = (e) => {
@@ -177,9 +187,22 @@ const UserStats = () => {
       setAdhaarError('Adhaar must be 12 digits');
       return;
     }
-    // Add user logic here (e.g., update state or call API)
+    setUsers([
+      ...users,
+      {
+        id: users.length + 1,
+        ...form,
+        status: "Active",
+      },
+    ]);
     setOpen(false);
-    setForm({ userid: '', username: '', adhaarnumber: '', ohinenumber: '', address: '' });
+    setForm({
+      username: "",
+      adhaarnumber: "",
+      ohinenumber: "",
+      address: "",
+      phonenumber: "",
+    });
   };
 
   return (
@@ -256,26 +279,7 @@ const UserStats = () => {
           STATE USERS LIST
         </Typography>
 
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          {/* Search Bar */}
-          <TextField
-            variant="outlined"
-            placeholder="Search users"
-            size="small"
-            sx={{ width: 300 }}
-          />
-
-          {/* Add User Button */}
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setOpen(true)}
-            sx={{ fontFamily: "Nunito, Poppins, sans-serif" }}
-          >
-            Add User
-          </Button>
-        </Box>
-
+       
         <Grid container spacing={2} sx={{ mb: 2 }}>
           <Grid item xs={12} sm={8}>
             <TextField
@@ -363,59 +367,6 @@ const UserStats = () => {
           />
         </div>
       </Box>
-
-      {/* Add User Dialog */}
-      <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>Add User</DialogTitle>
-        <DialogContent>
-          <TextField
-            margin="dense"
-            label="User ID"
-            name="userid"
-            fullWidth
-            value={form.userid}
-            onChange={handleChange}
-          />
-          <TextField
-            margin="dense"
-            label="Username"
-            name="username"
-            fullWidth
-            value={form.username}
-            onChange={handleChange}
-          />
-          <TextField
-            margin="dense"
-            label="Adhaar Number"
-            name="adhaarnumber"
-            fullWidth
-            value={form.adhaarnumber}
-            onChange={handleChange}
-            error={!!adhaarError}
-            helperText={adhaarError}
-          />
-          <TextField
-            margin="dense"
-            label="Phone Number"
-            name="phonenumber"
-            fullWidth
-            value={form.ohinenumber}
-            onChange={handleChange}
-          />
-          <TextField
-            margin="dense"
-            label="Address"
-            name="address"
-            fullWidth
-            value={form.address}
-            onChange={handleChange}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained">Add</Button>
-        </DialogActions>
-      </Dialog>
     </DashboardLayout>
   );
 };

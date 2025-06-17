@@ -20,7 +20,7 @@ const DashboardLayout = ({ children }) => {
             width: 250,
             minWidth: 250,
             position: "sticky",
-            top: 60, // Adjust to your header height
+            top: 60, 
             height: "calc(100vh - 60px)",
             zIndex: 999,
           }}
