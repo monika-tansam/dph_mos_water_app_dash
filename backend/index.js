@@ -4,6 +4,7 @@ import cors from 'cors';
 import loginRoute from './routes/login.js';
 import captchaRoute from './routes/captcha.js';
 import forgotPasswordRoute from './routes/forgotPassword.js';
+import dashboardRoute from './routes/dashboard.js';
 
 const app = express();
 
@@ -14,7 +15,7 @@ app.use(cors({
 app.use(express.json());
 
 app.use(session({
-    secret: 'your-secret-key', 
+    secret: 'your-secret-key', // use env var in production
     resave: false,
     saveUninitialized: true,
     cookie: { maxAge: 5 * 60 * 1000 } // 5 minutes
@@ -23,6 +24,7 @@ app.use(session({
 app.use('/login', loginRoute);
 app.use('/captcha', captchaRoute);
 app.use('/forgot-password', forgotPasswordRoute);
+app.use('/dashboard', dashboardRoute);
 
 const PORT = 3000;
 app.listen(PORT, () => {

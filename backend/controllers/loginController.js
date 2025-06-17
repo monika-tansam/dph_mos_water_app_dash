@@ -1,27 +1,35 @@
 //import validateCaptcha from './captchaController.js';
 
-const users = [
-    { username: 'karthi@example.com', password: 'Nodejs@123' },
-    { username: 'admin@example.com', password: 'admin@123' }
-];
+import pool from '../utils/db.js';
 
-const handleLogin = (req, res) => {
+const handleLogin = async (req, res) => {
     const { username, password } = req.body;
 
-    if (!username || !password ) {
-        return res.status(400).json({ message: 'All fields are required.' });
-    }
-
-    // if (!validateCaptcha(captcha)) {
-    //     return res.status(401).json({ message: 'Invalid captcha.' });
-    // }
-
+    const users = [
+        { username: 'karthi@example.com', password: 'nodejs123' }
+    ];
     const user = users.find(u => u.username === username && u.password === password);
-    if (!user) {
-        return res.status(401).json({ message: 'Invalid username or password.' });
+    if (user) {
+        return res.status(200).json({ message: 'Admin login successful!' });
     }
+    
+    try {
+        const result = await pool.query(
+        'SELECT * FROM district_officer_table WHERE username = $1 AND password = $2',
+        [username, password]
+        );
 
-    return res.status(200).json({ message: 'Login successful!' });
+        if (result.rows.length > 0) {
+            res.json({ message: 'Login successful' });
+        } else {
+            res.status(401).json({ message: 'Invalid credentials' });
+        }
+    } 
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
 };
 
 export default { handleLogin };
+// This code handles the login functionality for the application.
