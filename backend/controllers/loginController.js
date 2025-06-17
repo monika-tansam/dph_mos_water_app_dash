@@ -6,7 +6,7 @@ const handleLogin = async (req, res) => {
     const { username, password } = req.body;
 
     const users = [
-        { username: 'karthi@example.com', password: 'nodejs123' }
+        { username: 'karthi@example.com', password: 'Nodejs@123' }
     ];
     const user = users.find(u => u.username === username && u.password === password);
     if (user) {
