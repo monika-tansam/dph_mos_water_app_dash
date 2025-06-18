@@ -42,6 +42,7 @@ const getDistrictOfficers = async (req, res) => {
                 d_off.district_code,
                 d_off.status,
                 d.district_name,
+                d_off.password,
                 d_off.phone_number,
                 d_off.address,
                 d_off.aadhar_number
