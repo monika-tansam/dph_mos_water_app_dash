@@ -32,7 +32,7 @@ const handleLogin = async (req, res) => {
 };
 
 const addDistrictOfficer = async (req, res) => {
-    const { username, password, district_name, phone_number, address, aadhar_number, status } = req.body;
+    const { user_id, username, password, district_name, phone_number, address, aadhar_number, status } = req.body;
 
     try {
         // Get district_code from district_table using district name
@@ -50,9 +50,9 @@ const addDistrictOfficer = async (req, res) => {
         // Insert new district officer
         await pool.query(
             `INSERT INTO district_officer_table 
-                ( username, password, district_code, phone_number, address, aadhar_number, status) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-            [ username, password, district_code, phone_number, address, aadhar_number, status]
+                ( username, password, district_code, phone_number, address, aadhar_number, status, user_id) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            [ username, password, district_code, phone_number, address, aadhar_number, status, user_id]
         );
 
         return res.status(201).json({ message: 'District officer added successfully' });
