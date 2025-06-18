@@ -21,6 +21,7 @@ import { useTheme } from "@mui/material/styles";
 export default function UserTable() {
   const [filter, setFilter] = useState("");
   const [districtFilter, setDistrictFilter] = useState("");
+  const [areaFilter, setAreaFilter] = useState("");
   const [rows, setRows] = useState([]);
   const [openImg, setOpenImg] = useState(false);
   const [imgSrcs, setImgSrcs] = useState([]);
@@ -30,7 +31,7 @@ export default function UserTable() {
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const username = "karthi@example.com"; // change if dynamic
+  const username = "karthi@example.com";
 
   useEffect(() => {
     const getData = async () => {
@@ -45,19 +46,44 @@ export default function UserTable() {
           return;
         }
         const data = await resp.json();
-        const formatted = data.map((d, i) => ({
-          id: i + 1,
-          district: d.district,
-          userId: d.user_id,
-          name: d.user_name,
-          userGeo: `Lat: ${d.user_lat}, Lng: ${d.user_lng}`,
-          date: d.date,
-          time: d.time,
-          pictures: d.pictures,
-          geo: `Lat: ${d.lat}, Lng: ${d.lng}`,
-          lat: d.lat,
-          lng: d.lng,
-        }));
+        console.log("Raw API data:", data); // Debug log
+        const formatted = data.map((d, i) => {
+          // Parse user_geolocation (format: "lat, lng")
+          let userLat = null;
+          let userLng = null;
+          if (d.user_geolocation) {
+            const [lat, lng] = d.user_geolocation.split(",").map((coord) => parseFloat(coord.trim()));
+            userLat = lat;
+            userLng = lng;
+          }
+
+          // Parse geolocation (format: "Lat:lng, Long:lat")
+          let lat = null;
+          let lng = null;
+          if (d.geolocation) {
+            const geoMatch = d.geolocation.match(/Lat:([\d.-]+),\s*Long:([\d.-]+)/);
+            if (geoMatch) {
+              lng = parseFloat(geoMatch[1]); 
+              lat = parseFloat(geoMatch[2]); 
+            }
+          }
+
+          return {
+            id: i + 1,
+            district_name: d.district_name,
+            userId: d.user_id,
+            username: d.username,
+            userGeo: userLat && userLng ? `Lat: ${userLat}, Lng: ${userLng}` : "N/A",
+            date: d.date,
+            time: d.time,
+            pictures: d.image_base64 ? [d.image_base64] : [], // Convert single image to array
+            geo: lat && lng ? `Lat: ${lat}, Lng: ${lng}` : "N/A",
+            lat: lat || 0, // Default to 0 if undefined
+            lng: lng || 0, // Default to 0 if undefined
+            area_type: d.area_type || "", 
+          };
+        });
+       
         setRows(formatted);
       } catch (e) {
         console.error("Error fetching dashboard data", e);
@@ -66,19 +92,53 @@ export default function UserTable() {
     getData();
   }, [username]);
 
-  const districts = Array.from(new Set(rows.map((row) => row.district)));
+  const districts = [
+    "Chennai",
+    "Coimbatore",
+    "Madurai",
+    "Tiruchirappalli",
+    "Thiruvallur",
+    "Krishnagiri",
+    "Salem",
+    "Tirunelveli",
+    "Vellore",
+    "Erode",
+    "Thoothukudi",
+    "Thanjavur",
+    "Dindigul",
+    "Cuddalore",
+    "Kanchipuram",
+    "Kanyakumari",
+    "Karur",
+    "Nagapattinam",
+    "Namakkal",
+    "Perambalur",
+    "Pudukkottai",
+    "Ramanathapuram",
+    "Sivaganga",
+    "Theni",
+    "The Nilgiris",
+    "Thiruvallur",
+    "Thiruvarur",
+    "Tiruppur",
+    "Tiruvannamalai",
+    "Villupuram",
+    "Virudhunagar",
+  ];
 
   const filteredRows = rows.filter((row) => {
-    const matchesFilter = filter ? row.name.toLowerCase().includes(filter.toLowerCase()) : true;
-    const matchesDistrict = districtFilter ? row.district === districtFilter : true;
-    return matchesFilter && matchesDistrict;
+    const matchesFilter = filter ? row.username.toLowerCase().includes(filter.toLowerCase()) : true;
+    const matchesDistrict = districtFilter ? row.district_name === districtFilter : true;
+    const matchesArea = areaFilter ? (row.area_type || "").toLowerCase() === areaFilter.toLowerCase() : true;
+    return matchesFilter && matchesDistrict && matchesArea;
   });
 
   const columns = [
     { field: "id", headerName: "ID", width: 70 },
-    { field: "district", headerName: "District", width: 130 },
+    { field: "district_name", headerName: "District", width: 130 },
     { field: "userId", headerName: "User ID", width: 130 },
-    { field: "name", headerName: "UserName", width: 130 },
+    { field: "username", headerName: "UserName", width: 130 },
+    { field: "area_type", headerName: "Area Type", width: 120 }, // <-- Added column
     { field: "userGeo", headerName: "User Geolocation", width: 200 },
     { field: "date", headerName: "Date", width: 130 },
     { field: "time", headerName: "Time", width: 130 },
@@ -118,32 +178,73 @@ export default function UserTable() {
 
   return (
     <DashboardLayout>
-      <Box p={2}>
-        <Typography variant="h5" gutterBottom>
+      <Box p={2} sx={{ fontFamily: "Nunito, Poppins, sans-serif" }}>
+        <Typography
+          variant="h5"
+          gutterBottom
+          sx={{ fontWeight: 550, color: "#2A2F5B", fontFamily: "Nunito, sans-serif" }}
+        >
           DATA COLLECTION (District-Wise Information)
         </Typography>
-        <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
-          <Select
-            displayEmpty
-            value={districtFilter}
-            onChange={(e) => setDistrictFilter(e.target.value)}
-          >
-            <MenuItem value="">
-              <em>All Districts</em>
-            </MenuItem>
-            {districts.map((district, index) => (
-              <MenuItem key={index} value={district}>
-                {district}
+        <Box display="flex" gap={2} alignItems="center" mb={2}>
+          <FormControl sx={{ minWidth: 120 }} size="small">
+            <Select
+              displayEmpty
+              value={districtFilter}
+              onChange={(e) => setDistrictFilter(e.target.value)}
+              sx={{ fontFamily: "Nunito, sans-serif" }}
+            >
+              <MenuItem value="">
+                <em>All Districts</em>
               </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+              {districts.map((district, index) => (
+                <MenuItem key={index} value={district} sx={{ fontFamily: "Nunito, sans-serif" }}>
+                  {district}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl sx={{ minWidth: 120 }} size="small">
+            <Select
+              displayEmpty
+              value={areaFilter}
+              onChange={(e) => setAreaFilter(e.target.value)}
+              sx={{ fontFamily: "Nunito, sans-serif" }}
+            >
+              <MenuItem value="">
+                <em>All Areas</em>
+              </MenuItem>
+              <MenuItem value="Urban">Urban</MenuItem>
+              <MenuItem value="Rural">Rural</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
         <Box style={{ height: 600, width: "100%" }}>
-          <DataGrid rows={filteredRows} columns={columns} pageSize={10} />
+          <DataGrid
+            rows={filteredRows}
+            columns={columns}
+            pageSize={10}
+            sx={{
+              fontFamily: "Nunito, Poppins, sans-serif",
+              "& .MuiDataGrid-columnHeaders": {
+                backgroundColor: "#f5f5f5",
+                fontWeight: 400,
+                fontSize: "1.08rem",
+                color: "#222",
+                fontFamily: "Nunito, sans-serif",
+              },
+              "& .MuiDataGrid-cell": {
+                fontSize: "1.08rem",
+                fontWeight: 500,
+                color: "#425466",
+                fontFamily: "Nunito, sans-serif",
+              },
+            }}
+          />
         </Box>
 
         <Dialog open={openImg} onClose={() => setOpenImg(false)} maxWidth="md">
-          <DialogTitle>
+          <DialogTitle sx={{ fontFamily: "Nunito, sans-serif" }}>
             Image Viewer
             <IconButton
               aria-label="close"
@@ -161,13 +262,13 @@ export default function UserTable() {
                 style={{ maxWidth: "100%", maxHeight: "70vh" }}
               />
             ) : (
-              <Typography>No Image Available</Typography>
+              <Typography sx={{ fontFamily: "Nunito, sans-serif" }}>No Image Available</Typography>
             )}
           </DialogContent>
         </Dialog>
 
         <Dialog open={openMap} onClose={() => setOpenMap(false)} maxWidth="md">
-          <DialogTitle>
+          <DialogTitle sx={{ fontFamily: "Nunito, sans-serif" }}>
             Location Map
             <IconButton
               aria-label="close"
@@ -178,15 +279,19 @@ export default function UserTable() {
             </IconButton>
           </DialogTitle>
           <DialogContent>
-            <iframe
-              title="Map View"
-              width="100%"
-              height="400"
-              style={{ border: 0 }}
-              loading="lazy"
-              allowFullScreen
-              src={`https://www.google.com/maps?q=${mapCoords.lat},${mapCoords.lng}&z=15&output=embed`}
-            ></iframe>
+            {mapCoords.lat !== 0 && mapCoords.lng !== 0 ? (
+              <iframe
+                title="Map View"
+                width="100%"
+                height="400"
+                style={{ border: 0 }}
+                loading="lazy"
+                allowFullScreen
+                src={`https://www.google.com/maps?q=${mapCoords.lat},${mapCoords.lng}&z=15&output=embed`}
+              ></iframe>
+            ) : (
+              <Typography sx={{ fontFamily: "Nunito, sans-serif" }}>Invalid Coordinates</Typography>
+            )}
           </DialogContent>
         </Dialog>
       </Box>

@@ -29,7 +29,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
   ];
 
   const handleLogout = () => {
-    navigate("/"); // Navigate to home
+    navigate("/"); 
   };
 
   const drawerStyles = {
