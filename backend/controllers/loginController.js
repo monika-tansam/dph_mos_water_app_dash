@@ -15,7 +15,7 @@ const handleLogin = async (req, res) => {
     
     try {
         const result = await pool.query(
-        'SELECT * FROM district_officer_table WHERE username = $1 AND password = $2',
+        'SELECT * FROM district_officer_table WHERE user_id = $1 AND password = $2',
         [username, password]
         );
 
@@ -32,7 +32,7 @@ const handleLogin = async (req, res) => {
 };
 
 const addDistrictOfficer = async (req, res) => {
-    const { username, password, district, phone_number, address, aadhar_number, status } = req.body;
+    const { user_id, username, password, district_name, phone_number, address, aadhar_number, status } = req.body;
 
     try {
         // Get district_code from district_table using district name
