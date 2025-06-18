@@ -32,13 +32,13 @@ const handleLogin = async (req, res) => {
 };
 
 const addDistrictOfficer = async (req, res) => {
-    const { username, password, district, phone_number, address, aadhar_number, status } = req.body;
+    const { username, password, district_name, phone_number, address, aadhar_number, status } = req.body;
 
     try {
         // Get district_code from district_table using district name
         const districtResult = await pool.query(
             'SELECT district_code FROM district_table WHERE district_name = $1',
-            [district]
+            [district_name]
         );
 
         if (districtResult.rows.length === 0) {
@@ -63,13 +63,13 @@ const addDistrictOfficer = async (req, res) => {
 };
 
 const editDistrictOfficer = async (req, res) => {
-    const { user_id, password, district, phone_number, address, aadhar_number, status } = req.body;
+    const { user_id, username, password, district_name, phone_number, address, aadhar_number, status } = req.body;
 
     try {
         // Get district_code from district_table using district name
         const districtResult = await pool.query(
             'SELECT district_code FROM district_table WHERE district_name = $1',
-            [district]
+            [district_name]
         );
 
         if (districtResult.rows.length === 0) {
@@ -86,9 +86,10 @@ const editDistrictOfficer = async (req, res) => {
                  phone_number = $3,
                  address = $4,
                  aadhar_number = $5,
-                 status = $6
-             WHERE user_id = $7`,
-            [password, district_code, phone_number, address, aadhar_number, status, user_id]
+                 status = $6,
+                 username = $7
+             WHERE user_id = $8`,
+            [password, district_code, phone_number, address, aadhar_number, status, username, user_id]
         );
 
         if (updateResult.rowCount === 0) {
