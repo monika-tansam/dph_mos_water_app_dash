@@ -15,7 +15,7 @@ const handleLogin = async (req, res) => {
     
     try {
         const result = await pool.query(
-        'SELECT * FROM district_officer_table WHERE username = $1 AND password = $2',
+        'SELECT * FROM district_officer_table WHERE user_id = $1 AND password = $2',
         [username, password]
         );
 
