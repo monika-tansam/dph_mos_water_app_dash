@@ -135,7 +135,15 @@ const ForgetPassword = () => {
             </button>
           </form>
         )}
-        <ToastContainer position="top-center" autoClose={3000} />
+        <ToastContainer
+         position="top-right"
+         autoClose={3000}
+         theme="colored"
+         limit={2}
+         pauseOnHover
+         draggable
+         hideProgressBar={false}
+       />
       </div>
     </div>
   );

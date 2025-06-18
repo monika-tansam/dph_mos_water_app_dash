@@ -1,13 +1,15 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { IconButton, Menu, MenuItem, Tooltip } from "@mui/material";
-import { Menu as MenuIcon, AccountCircle } from "@mui/icons-material";
+import { Avatar, IconButton, Menu, MenuItem, Tooltip, useMediaQuery } from "@mui/material";
+import { Menu as MenuIcon } from "@mui/icons-material";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import "./../Styles/main.css";
 
 const Header = ({ toggleSidebar }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const navigate = useNavigate();
+  const isMobile = useMediaQuery("(max-width:600px)");
 
   const handleClick = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
@@ -31,18 +33,54 @@ const Header = ({ toggleSidebar }) => {
           </IconButton>
         </div>
         
-        <img src="/Logo2.png" alt="Logo 1" className="header-logo main-logo" />
+        <img
+          src="/Logo2.png"
+          alt="Logo 1"
+          className="header-logo main-logo"
+          style={{
+            height: isMobile ? 36 : 60,
+            width: "auto",
+            transition: "height 0.2s"
+          }}
+        />
      
         <div className="flex-grow-1 text-center header-color header-title-wrap">
-          <h3 className="gov-title">Government of Tamil Nadu</h3>
-          <h4 className="mb-0 dph-title">Directorate of Public Health and Preventive Medicine</h4>
+          <h3 className="gov-title">Directorate of Public Health and Preventive Medicine</h3>
+          <h4 className="mb-0 dph-title">Domestic Breeding Checkers Dashboard</h4>
         </div>
         
         <div className="d-flex align-items-center gap-3">
           <img src="/DPH_Logo.webp" alt="Logo 2" className="header-logo dph-logo" />
           <Tooltip title="Account settings">
-            <IconButton onClick={handleClick} size="small" sx={{ ml: 2 }}>
-              <AccountCircle sx={{ fontSize: 36, color: "#1976d2" }} />
+            <IconButton
+              onClick={handleClick}
+              sx={{
+                ml: 2,
+                p: 0.3,
+                background: "rgba(255,255,255,0.25)",
+                backdropFilter: "blur(6px)",
+                border: "2px solid #1976d2",
+                boxShadow: "0 4px 24px 0 rgba(25, 118, 210, 0.15)",
+                transition: "transform 0.2s, box-shadow 0.2s",
+                "&:hover": {
+                  background: "rgba(33,150,243,0.15)",
+                  transform: "scale(1.10)",
+                  boxShadow: "0 8px 32px 0 rgba(25, 118, 210, 0.25)",
+                },
+              }}
+            >
+              <Avatar
+                sx={{
+                  bgcolor: "transparent",
+                  width: isMobile ? 26 : 32,
+                  height: isMobile ? 26 : 32,
+                  fontSize: isMobile ? 18 : 22,
+                  color: "#1976d2",
+                  transition: "all 0.2s"
+                }}
+              >
+                <AccountCircleIcon fontSize="inherit" />
+              </Avatar>
             </IconButton>
           </Tooltip>
           <Menu
