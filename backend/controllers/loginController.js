@@ -31,5 +31,77 @@ const handleLogin = async (req, res) => {
     }
 };
 
-export default { handleLogin };
+const addDistrictOfficer = async (req, res) => {
+    const { username, password, district, phone_number, address, aadhar_number, status } = req.body;
+
+    try {
+        // Get district_code from district_table using district name
+        const districtResult = await pool.query(
+            'SELECT district_code FROM district_table WHERE district_name = $1',
+            [district]
+        );
+
+        if (districtResult.rows.length === 0) {
+            return res.status(400).json({ message: 'Invalid district name' });
+        }
+
+        const district_code = districtResult.rows[0].district_code;
+
+        // Insert new district officer
+        await pool.query(
+            `INSERT INTO district_officer_table 
+                ( username, password, district_code, phone_number, address, aadhar_number, status) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [ username, password, district_code, phone_number, address, aadhar_number, status]
+        );
+
+        return res.status(201).json({ message: 'District officer added successfully' });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Server error' });
+    }
+};
+
+const editDistrictOfficer = async (req, res) => {
+    const { user_id, password, district, phone_number, address, aadhar_number, status } = req.body;
+
+    try {
+        // Get district_code from district_table using district name
+        const districtResult = await pool.query(
+            'SELECT district_code FROM district_table WHERE district_name = $1',
+            [district]
+        );
+
+        if (districtResult.rows.length === 0) {
+            return res.status(400).json({ message: 'Invalid district name' });
+        }
+
+        const district_code = districtResult.rows[0].district_code;
+
+        // Update district officer details using user_id
+        const updateResult = await pool.query(
+            `UPDATE district_officer_table
+             SET password = $1,
+                 district_code = $2,
+                 phone_number = $3,
+                 address = $4,
+                 aadhar_number = $5,
+                 status = $6
+             WHERE user_id = $7`,
+            [password, district_code, phone_number, address, aadhar_number, status, user_id]
+        );
+
+        if (updateResult.rowCount === 0) {
+            return res.status(404).json({ message: 'District officer not found' });
+        }
+
+        return res.status(200).json({ message: 'District officer updated successfully' });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Server error' });
+    }
+};
+
+
+export default { handleLogin, addDistrictOfficer, editDistrictOfficer };
 // This code handles the login functionality for the application.
