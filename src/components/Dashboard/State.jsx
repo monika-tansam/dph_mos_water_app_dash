@@ -48,14 +48,12 @@ const COLORS = ["#007556", "#e53935"];
 
 const UserStats = () => {
   const [filter, setFilter] = useState("Today");
-  const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [users, setUsers] = useState([]);
-  const [districts, setDistricts] = useState([]);
+  // const [districts, setDistricts] = useState([]);
   const [form, setForm] = useState({
     user_id: "",
     username: "",
@@ -79,18 +77,18 @@ const UserStats = () => {
 
   // Fetch districts and users on component mount
   useEffect(() => {
-    const fetchDistricts = async () => {
-      try {
-        const response = await fetch('http://localhost:3000/dashboard/district', {
-          credentials: 'include'
-        });
-        if (!response.ok) throw new Error('Failed to fetch districts');
-        const data = await response.json();
-        setDistricts(data);
-      } catch (err) {
-        console.error('Error fetching districts:', err);
-      }
-    };
+    // const fetchDistricts = async () => {
+    //   try {
+    //     const response = await fetch('http://localhost:3000/dashboard/district', {
+    //       credentials: 'include'
+    //     });
+    //     if (!response.ok) throw new Error('Failed to fetch districts');
+    //     const data = await response.json();
+    //     setDistricts(data);
+    //   } catch (err) {
+    //     console.error('Error fetching districts:', err);
+    //   }
+    // };
 
     const fetchUsers = async () => {
       try {
@@ -112,7 +110,7 @@ const UserStats = () => {
       }
     };
 
-    fetchDistricts();
+    // fetchDistricts();
     fetchUsers();
   }, []);
 
@@ -138,10 +136,6 @@ const UserStats = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const paginatedUsers = filteredUsers.slice(
-    page * pageSize,
-    page * pageSize + pageSize
-  );
 
   const validateAdhaar = (value) => /^\d{12}$/.test(value);
 
@@ -194,7 +188,7 @@ const UserStats = () => {
       });
       if (!response.ok) throw new Error("Failed to update");
       // Optionally update local state or refetch data here
-    } catch (err) {
+    } catch {
       alert("Failed to update user");
     }
   };
@@ -205,7 +199,7 @@ const UserStats = () => {
         <CardContent>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
             <Typography variant="h5" sx={{ fontWeight: 600, color: "#333" }}>
-              STATE USERS STATISTICS
+              Active / In-active Users List
             </Typography>
             <Select
               size="small"
