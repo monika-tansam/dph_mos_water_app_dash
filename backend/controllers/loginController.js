@@ -52,7 +52,7 @@ const addDistrictOfficer = async (req, res) => {
             `INSERT INTO district_officer_table 
                 ( username, password, district_code, phone_number, address, aadhar_number, status) 
              VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-            [ username, password, district_code, phone_number, address, aadhar_number, status]
+            [user_id, username, password, district_code, phone_number, address, aadhar_number, status]
         );
 
         return res.status(201).json({ message: 'District officer added successfully' });

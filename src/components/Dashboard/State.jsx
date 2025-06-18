@@ -57,8 +57,9 @@ const UserStats = () => {
   const [users, setUsers] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [form, setForm] = useState({
-    user_id: "",
+    user_id: "", // <-- Add this line
     username: "",
+    password: "",
     district_name: "",
     phone_number: "",
     address: "",
@@ -70,12 +71,14 @@ const UserStats = () => {
     username: "",
     district_name: "",
     phone_number: "",
+    password:"",
     address: "",
     aadhar_number: "",
     status: "Active"
   });
 
   const [adhaarError, setAdhaarError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   // Fetch districts and users on component mount
   useEffect(() => {
@@ -103,6 +106,7 @@ const UserStats = () => {
           ...user,
           phone_number: user.phone_number || "",
           address: user.address || "",
+          password:user.password || "",
           aadhar_number: user.aadhar_number || "",
           status: user.status || "Active"
         }));
@@ -144,35 +148,59 @@ const UserStats = () => {
   );
 
   const validateAdhaar = (value) => /^\d{12}$/.test(value);
+  const validatePassword = (value) =>
+    /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\[\]{};':"\\|,.<>\/?]).{8,}$/.test(value);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     if (e.target.name === 'aadhar_number') {
       setAdhaarError(validateAdhaar(e.target.value) ? '' : 'Adhaar must be 12 digits');
     }
+    if (e.target.name === 'password') {
+      setPasswordError(
+        validatePassword(e.target.value)
+          ? ''
+          : 'Password must be 8+ chars, 1 uppercase, 1 number, 1 special char'
+      );
+    }
   };
 
-  const handleSubmit = () => {
+  // --- Add User ---
+  const handleSubmit = async () => {
     if (!validateAdhaar(form.aadhar_number)) {
       setAdhaarError('Adhaar must be 12 digits');
       return;
     }
-    setUsers([
-      ...users,
-      {
-        ...form,
-      },
-    ]);
-    setOpen(false);
-    setForm({
-      user_id: "",
-      username: "",
-      district_name: "",
-      phone_number: "",
-      address: "",
-      aadhar_number: "",
-      status: "Active"
-    });
+    if (!validatePassword(form.password)) {
+      setPasswordError('Password must be 8+ chars, 1 uppercase, 1 number, 1 special char');
+      return;
+    }
+    try {
+      const response = await fetch('http://localhost:3000/login/add-district-officer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to add user');
+      const newUser = await response.json();
+      setUsers(prev => [...prev, newUser]); // Add new user to state
+      setOpen(false);
+      setForm({
+        user_id: "",
+        username: "",
+        password: "",
+        district_name: "",
+        phone_number: "",
+        address: "",
+        aadhar_number: "",
+        status: "Active"
+      });
+      setPasswordError('');
+      setAdhaarError('');
+    } catch (err) {
+      alert('Failed to add user');
+    }
   };
 
   const handleEditClick = (row) => {
@@ -186,18 +214,71 @@ const UserStats = () => {
 
   const handleEditSave = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/dashboard/district-officers/${editForm.user_id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editForm),
-        credentials: "include"
-      });
+      const response = await fetch(
+        `http://localhost:3000/login/edit-district-officer`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(editForm),
+          credentials: "include"
+        }
+      );
       if (!response.ok) throw new Error("Failed to update");
-      // Optionally update local state or refetch data here
+      const updatedUser = await response.json();
+
+      // Update the user in local state
+      setUsers(users =>
+        users.map(user =>
+          user.user_id === updatedUser.user_id ? updatedUser : user
+        )
+      );
+      setEditOpen(false);
     } catch (err) {
       alert("Failed to update user");
     }
   };
+
+  // --- Table columns (do not show password/user_id input) ---
+  const columns = [
+    { field: "user_id", headerName: "User ID", width: 120, align: "center", headerAlign: "center" },
+    { field: "username", headerName: "Username", width: 160, align: "center", headerAlign: "center" },
+    { field: "password", headerName: "Password", width: 160, align: "center", headerAlign: "center" },
+    { field: "district_name", headerName: "District", width: 140, align: "center", headerAlign: "center" },
+    { field: "phone_number", headerName: "Phone Number", width: 150, align: "center", headerAlign: "center" },
+    { field: "address", headerName: "Address", width: 180, align: "center", headerAlign: "center" },
+    { field: "aadhar_number", headerName: "Aadhar Number", width: 160, align: "center", headerAlign: "center" },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 110,
+      align: "center",
+      headerAlign: "center",
+      renderCell: (params) => (
+        <Typography
+          sx={{
+            color: params.value === "Active" ? "#007556" : "#e53935",
+            fontWeight: "bold",
+            width: "100%",
+            textAlign: "center",
+          }}
+        >
+          {params.value}
+        </Typography>
+      )
+    },
+    {
+      field: "edit",
+      headerName: "Edit",
+      width: 80,
+      align: "center",
+      headerAlign: "center",
+      renderCell: (params) => (
+        <IconButton onClick={() => handleEditClick(params.row)}>
+          <EditIcon />
+        </IconButton>
+      )
+    }
+  ];
 
   return (
     <DashboardLayout>
@@ -205,7 +286,7 @@ const UserStats = () => {
         <CardContent>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
             <Typography variant="h5" sx={{ fontWeight: 600, color: "#333" }}>
-              STATE USERS STATISTICS
+              Active/Inactive Users
             </Typography>
             <Select
               size="small"
@@ -282,7 +363,7 @@ const UserStats = () => {
             textAlign: { xs: "center", sm: "left" },
           }}
         >
-          STATE USERS LIST
+          STATE USERS 
         </Typography>
 
         <Box
@@ -376,16 +457,17 @@ const UserStats = () => {
             <DataGrid
               rows={filteredUsers}
               columns={[
-                { field: "user_id", headerName: "User ID", width: 180 },
-                { field: "username", headerName: "Username", width: 230 },
-                { field: "district_name", headerName: "District", width: 200 },
-                { field: "phone_number", headerName: "Phone Number", width: 220 },
-                { field: "address", headerName: "Address", width: 260 },
-                { field: "aadhar_number", headerName: "Adhaar Number", width: 220 },
+                { field: "user_id", headerName: "User ID", width: 120, align: "center", headerAlign: "center" },
+                { field: "username", headerName: "Username", width: 160, align: "center", headerAlign: "center" },
+                { field: "password", headerName: "Password", width: 160, align: "center", headerAlign: "center" },
+                { field: "district_name", headerName: "District", width: 140, align: "center", headerAlign: "center" },
+                { field: "phone_number", headerName: "Phone Number", width: 150, align: "center", headerAlign: "center" },
+                { field: "address", headerName: "Address", width: 350, align: "center", headerAlign: "center" },
+                { field: "aadhar_number", headerName: "Aadhar Number", width: 160, align: "center", headerAlign: "center" },
                 {
                   field: "status",
                   headerName: "Status",
-                  width: 160,
+                  width: 110,
                   align: "center",
                   headerAlign: "center",
                   renderCell: (params) => (
@@ -404,7 +486,9 @@ const UserStats = () => {
                 {
                   field: "edit",
                   headerName: "Edit",
-                  width: 80,
+                  width: 150,
+                  align: "center",
+                  headerAlign: "center",
                   renderCell: (params) => (
                     <IconButton onClick={() => handleEditClick(params.row)}>
                       <EditIcon />
@@ -436,6 +520,7 @@ const UserStats = () => {
                   fontFamily: "Nunito, Poppins, sans-serif",
                   borderBottom: "1px solid #e3e8ee",
                   transition: "background 0.2s",
+                  textAlign: "center"
                 },
                 '& .MuiDataGrid-row': {
                   transition: "background 0.2s",
@@ -498,6 +583,20 @@ const UserStats = () => {
                 InputLabelProps={{ style: { fontFamily: "Nunito, sans-serif" } }}
                 inputProps={{ style: { fontFamily: "Nunito, sans-serif" } }}
               />
+              <TextField
+                label="Password"
+                name="password"
+                type="password"
+                variant="outlined"
+                fullWidth
+                value={form.password}
+                onChange={handleChange}
+                error={!!passwordError}
+                helperText={passwordError}
+                sx={{ fontFamily: "Nunito, sans-serif" }}
+                InputLabelProps={{ style: { fontFamily: "Nunito, sans-serif" } }}
+                inputProps={{ style: { fontFamily: "Nunito, sans-serif" } }}
+              />
               <FormControl fullWidth margin="dense">
                 <InputLabel id="district-label">District</InputLabel>
                 <Select
@@ -506,7 +605,7 @@ const UserStats = () => {
                   value={form.district_name}
                   label="District"
                   onChange={handleChange}
-                  sx={{ fontFamily: "Nunito, sans-serif" }}
+                  sx={{ fontFamily: "Nunito, Poppins, sans-serif" }}
                 >
                   <MenuItem value="">Select District</MenuItem>
                   <MenuItem value="Chennai">Chennai</MenuItem>
@@ -594,9 +693,13 @@ const UserStats = () => {
               <TextField
                 label="User ID"
                 name="user_id"
-                value={editForm.user_id}
+                variant="outlined"
                 fullWidth
-                disabled
+                value={form.user_id}
+                onChange={handleChange}
+                sx={{ fontFamily: "Nunito, sans-serif" }}
+                InputLabelProps={{ style: { fontFamily: "Nunito, sans-serif" } }}
+                inputProps={{ style: { fontFamily: "Nunito, sans-serif" } }}
               />
               <TextField
                 label="Username"
@@ -604,6 +707,15 @@ const UserStats = () => {
                 value={editForm.username}
                 onChange={handleEditFormChange}
                 fullWidth
+              />
+              <TextField
+                label="Password"
+                name="password"
+                type="password"
+                value={editForm.password || ""}
+                onChange={handleEditFormChange}
+                fullWidth
+                helperText="Leave blank to keep the current password"
               />
               <TextField
                 label="District"
