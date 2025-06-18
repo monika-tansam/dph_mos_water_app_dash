@@ -80,7 +80,7 @@ function LoginForm() {
     width: '100vw',
     display: 'flex',
     flexDirection: 'column',
-    overflow: 'hidden', // Prevents horizontal scrolling
+    overflow: 'hidden', 
   }}
 >
 
@@ -138,7 +138,15 @@ function LoginForm() {
         </button>
       </form>
     </div>
-    <ToastContainer position="top-center" autoClose={3000} />
+    <ToastContainer
+  position="top-right"
+  autoClose={3000}
+  theme="colored"
+  limit={2}
+  pauseOnHover
+  draggable
+  hideProgressBar={false}
+/>
   </div>
 </div>
 
