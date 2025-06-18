@@ -7,5 +7,6 @@ const router = express.Router();
 router.post('/', dashboardController.getDashboardData);
 router.get('/district', dashboardController.getDistrictData);
 router.get('/district-officers', dashboardController.getDistrictOfficers);
+router.post('/datacollection', dashboardController.addDataCollection);
 
 export default router;
