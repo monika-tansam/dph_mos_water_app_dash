@@ -92,7 +92,7 @@ export const addDataCollection = (req, res) => {
       const filename = `image-${Date.now()}.jpg`;
       const dir = path.join(process.cwd(), 'uploads');
       if (!fs.existsSync(dir)) fs.mkdirSync(dir);
-      imagePath = path.join('uploads', filename);
+      imagePath = path.join('/uploads', filename);
       fs.writeFileSync(path.join(process.cwd(), imagePath), buffer);
     }
 
