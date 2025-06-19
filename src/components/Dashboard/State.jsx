@@ -1,45 +1,9 @@
 import React, { useState, useEffect } from "react";
 import DashboardLayout from "./DashboardLayout";
-import {
-  Box,
-  Card,
-  CardContent,
-  Grid,
-  MenuItem,
-  Select,
-  Typography,
-  Button,
-  Stack,
-  TextField,
-  InputAdornment,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  FormControl,
-  InputLabel
-} from "@mui/material";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-  ResponsiveContainer
-} from "recharts";
-import {
-  DataGrid,
-  GridToolbarContainer,
-  GridToolbarExportContainer,
-  GridCsvExportMenuItem,
-  GridPrintExportMenuItem
-} from "@mui/x-data-grid";
-import {
-  KeyboardArrowLeft,
-  KeyboardArrowRight,
-  FirstPage,
-  LastPage,
-  Search as SearchIcon
-} from "@mui/icons-material";
+import {Box,Card,CardContent,Grid,MenuItem,Select,Typography,Button,Stack,TextField,InputAdornment,Dialog,DialogTitle,DialogContent,DialogActions,FormControl,InputLabel} from "@mui/material";
+import {PieChart,Pie,Cell,Legend,ResponsiveContainer} from "recharts";
+import {DataGrid,GridToolbarContainer,GridToolbarExportContainer,GridCsvExportMenuItem,GridPrintExportMenuItem} from "@mui/x-data-grid";
+import {KeyboardArrowLeft,KeyboardArrowRight,FirstPage,LastPage,Search as SearchIcon} from "@mui/icons-material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import IconButton from "@mui/material/IconButton";
@@ -142,10 +106,6 @@ const UserStats = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const paginatedUsers = filteredUsers.slice(
-    page * pageSize,
-    page * pageSize + pageSize
-  );
 
   const validateAdhaar = (value) => /^\d{12}$/.test(value);
   const validatePassword = (value) =>
@@ -201,6 +161,7 @@ const UserStats = () => {
     } catch (err) {
       alert('Failed to add user');
     }
+    console.log("Submitting form:", form);
   };
 
   const handleEditClick = (row) => {
@@ -239,46 +200,6 @@ const UserStats = () => {
   };
 
   // --- Table columns (do not show password/user_id input) ---
-  const columns = [
-    { field: "user_id", headerName: "User ID", width: 120, align: "center", headerAlign: "center" },
-    { field: "username", headerName: "Username", width: 160, align: "center", headerAlign: "center" },
-    { field: "password", headerName: "Password", width: 160, align: "center", headerAlign: "center" },
-    { field: "district_name", headerName: "District", width: 140, align: "center", headerAlign: "center" },
-    { field: "phone_number", headerName: "Phone Number", width: 150, align: "center", headerAlign: "center" },
-    { field: "address", headerName: "Address", width: 180, align: "center", headerAlign: "center" },
-    { field: "aadhar_number", headerName: "Aadhar Number", width: 160, align: "center", headerAlign: "center" },
-    {
-      field: "status",
-      headerName: "Status",
-      width: 110,
-      align: "center",
-      headerAlign: "center",
-      renderCell: (params) => (
-        <Typography
-          sx={{
-            color: params.value === "Active" ? "#007556" : "#e53935",
-            fontWeight: "bold",
-            width: "100%",
-            textAlign: "center",
-          }}
-        >
-          {params.value}
-        </Typography>
-      )
-    },
-    {
-      field: "edit",
-      headerName: "Edit",
-      width: 80,
-      align: "center",
-      headerAlign: "center",
-      renderCell: (params) => (
-        <IconButton onClick={() => handleEditClick(params.row)}>
-          <EditIcon />
-        </IconButton>
-      )
-    }
-  ];
 
   return (
     <DashboardLayout>

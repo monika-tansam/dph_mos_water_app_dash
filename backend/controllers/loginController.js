@@ -1,8 +1,8 @@
-//import validateCaptcha from './captchaController.js';
+// loginController.js (SQLite version)
 
-import pool from '../utils/db.js';
+import db from '../utils/db.js';
 
-const handleLogin = async (req, res) => {
+const handleLogin = (req, res) => {
     const { username, password } = req.body;
 
     const users = [
@@ -12,87 +12,104 @@ const handleLogin = async (req, res) => {
     if (user) {
         return res.status(200).json({ message: 'Admin login successful!' });
     }
-    
-    try {
-        const result = await pool.query(
-        'SELECT * FROM district_officer_table WHERE user_id = $1 AND password = $2',
-        [username, password]
-        );
 
-        if (result.rows.length > 0) {
-            res.json({ message: 'Login successful' });
+    try {
+        const stmt = db.prepare('SELECT * FROM district_officer_table WHERE user_id = ? AND password = ?');
+        const result = stmt.get(username, password);
+
+        if (result) {
+            const userData = {
+                user_id: result.user_id,
+                username: result.username,
+                phone_number: result.phone_number,
+                address: result.address,
+                aadhar_number: result.aadhar_number,
+                status: result.status,
+            };
+
+            return res.json({ message: 'Login successful', user: userData });
+
+
         } else {
             res.status(401).json({ message: 'Invalid credentials' });
         }
-    } 
-    catch (err) {
+    } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server error' });
     }
 };
 
 const addDistrictOfficer = async (req, res) => {
+    console.log("Incoming addDistrictOfficer request body:", req.body);  // 👈 LOG this
     const { user_id, username, password, district_name, phone_number, address, aadhar_number, status } = req.body;
+console.log("Received values:", {
+  user_id, username, password, district_name, phone_number, address, aadhar_number, status
+});
 
     try {
-        // Get district_code from district_table using district name
-        const districtResult = await pool.query(
-            'SELECT district_code FROM district_table WHERE district_name = $1',
-            [district_name]
-        );
+        const districtResult = db.prepare(
+            'SELECT district_code FROM district_table WHERE district_name = ?'
+        ).get(district_name);
 
-        if (districtResult.rows.length === 0) {
+        if (!districtResult) {
+            console.log("Invalid district name:", district_name);  // 👈 LOG
             return res.status(400).json({ message: 'Invalid district name' });
         }
 
-        const district_code = districtResult.rows[0].district_code;
+        const district_code = districtResult.district_code;
 
-        // Insert new district officer
-        await pool.query(
-            `INSERT INTO district_officer_table 
-                ( username, password, district_code, phone_number, address, aadhar_number, status) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-            [user_id, username, password, district_code, phone_number, address, aadhar_number, status]
-        );
+        db.prepare(`
+            INSERT INTO district_officer_table 
+                (user_id, username, password, district_code, phone_number, address, aadhar_number, status) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(user_id, username, password, district_code, phone_number, address, aadhar_number, status);
 
-        return res.status(201).json({ message: 'District officer added successfully' });
+        return res.status(201).json({
+            user_id,
+            username,
+            district_name,
+            phone_number,
+            address,
+            aadhar_number,
+            status,
+            password
+        });
+
     } catch (err) {
-        console.error(err);
+        console.error("Server error:", err);
         return res.status(500).json({ message: 'Server error' });
     }
 };
 
-const editDistrictOfficer = async (req, res) => {
+
+const editDistrictOfficer = (req, res) => {
     const { user_id, username, password, district_name, phone_number, address, aadhar_number, status } = req.body;
 
     try {
-        // Get district_code from district_table using district name
-        const districtResult = await pool.query(
-            'SELECT district_code FROM district_table WHERE district_name = $1',
-            [district_name]
-        );
+        const districtStmt = db.prepare('SELECT district_code FROM district_table WHERE district_name = ?');
+        const districtResult = districtStmt.get(district_name);
 
-        if (districtResult.rows.length === 0) {
+        if (!districtResult) {
             return res.status(400).json({ message: 'Invalid district name' });
         }
 
-        const district_code = districtResult.rows[0].district_code;
+        const district_code = districtResult.district_code;
 
-        // Update district officer details using user_id
-        const updateResult = await pool.query(
-            `UPDATE district_officer_table
-             SET password = $1,
-                 district_code = $2,
-                 phone_number = $3,
-                 address = $4,
-                 aadhar_number = $5,
-                 status = $6,
-                 username = $7
-             WHERE user_id = $8`,
-            [password, district_code, phone_number, address, aadhar_number, status, username, user_id]
-        );
+        const updateStmt = db.prepare(`
+            UPDATE district_officer_table
+            SET password = ?,
+                district_code = ?,
+                phone_number = ?,
+                address = ?,
+                aadhar_number = ?,
+                status = ?,
+                username = ?
+            WHERE user_id = ?
+        `);
 
-        if (updateResult.rowCount === 0) {
+        const info = updateStmt.run(password, district_code, phone_number, address, aadhar_number, status, username, user_id);
+
+        if (info.changes === 0) {
             return res.status(404).json({ message: 'District officer not found' });
         }
 
@@ -103,6 +120,4 @@ const editDistrictOfficer = async (req, res) => {
     }
 };
 
-
 export default { handleLogin, addDistrictOfficer, editDistrictOfficer };
-// This code handles the login functionality for the application.

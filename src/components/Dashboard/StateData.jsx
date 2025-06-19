@@ -57,14 +57,16 @@ export default function UserTable() {
             userLng = lng;
           }
 
-          // Parse geolocation (format: "Lat:lng, Long:lat")
+          // Parse geolocation (JSON string with latitude/longitude)
           let lat = null;
           let lng = null;
           if (d.geolocation) {
-            const geoMatch = d.geolocation.match(/Lat:([\d.-]+),\s*Long:([\d.-]+)/);
-            if (geoMatch) {
-              lng = parseFloat(geoMatch[1]); 
-              lat = parseFloat(geoMatch[2]); 
+            try {
+              const geoObj = JSON.parse(d.geolocation);
+              lat = geoObj.latitude;
+              lng = geoObj.longitude;
+            } catch (e) {
+              // fallback or leave as null
             }
           }
 
@@ -76,14 +78,14 @@ export default function UserTable() {
             userGeo: userLat && userLng ? `Lat: ${userLat}, Lng: ${userLng}` : "N/A",
             date: d.date,
             time: d.time,
-            pictures: d.image_base64 ? [d.image_base64] : [], // Convert single image to array
+            pictures: d.image_base64 ? [`http://localhost:3000/${d.image_base64.replace(/\\/g, '/')}`] : [],
             geo: lat && lng ? `Lat: ${lat}, Lng: ${lng}` : "N/A",
-            lat: lat || 0, // Default to 0 if undefined
-            lng: lng || 0, // Default to 0 if undefined
-            area_type: d.area_type || "", 
+            lat: lat || 0,
+            lng: lng || 0,
+            areaType: d.areatType || "",
           };
         });
-       
+
         setRows(formatted);
       } catch (e) {
         console.error("Error fetching dashboard data", e);
@@ -138,8 +140,8 @@ export default function UserTable() {
     { field: "district_name", headerName: "District", width: 130 },
     { field: "userId", headerName: "User ID", width: 130 },
     { field: "username", headerName: "UserName", width: 130 },
-    { field: "area_type", headerName: "Area Type", width: 120 }, // <-- Added column
-    { field: "userGeo", headerName: "User Geolocation", width: 200 },
+    { field: "areaType", headerName: "Area Type", width: 120 }, // <-- Added column
+    // { field: "userGeo", headerName: "User Geolocation", width: 200 },
     { field: "date", headerName: "Date", width: 130 },
     { field: "time", headerName: "Time", width: 130 },
     { field: "geo", headerName: "Geolocation", width: 200 },
