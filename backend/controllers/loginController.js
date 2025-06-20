@@ -5,38 +5,71 @@ import db from '../utils/db.js';
 const handleLogin = (req, res) => {
     const { username, password } = req.body;
 
-    const users = [
-        { username: 'karthi@example.com', password: 'Nodejs@123' }
-    ];
-    const user = users.find(u => u.username === username && u.password === password);
-    if (user) {
-        return res.status(200).json({ message: 'Admin login successful!' });
-    }
+  // 1. Super Admin (hardcoded)
+  const adminUsers = [
+    { username: 'karthi@example.com', password: 'Nodejs@123', role: 'mos_admin', module: 'mosquito' }
+  ];
+  const admin = adminUsers.find(u => u.username === username && u.password === password);
+  if (admin) {
+    return res.status(200).json({
+      message: 'Mosquito admin login successful',
+      user: {
+        username: admin.username,
+        role: admin.role,
+        module: admin.module
+      }
+    });
+  }
 
-    try {
-        const stmt = db.prepare('SELECT * FROM district_officer_table WHERE user_id = ? AND password = ?');
-        const result = stmt.get(username, password);
+  try {
+    // 2. Try Mosquito District Officer
+    const mosquitoUser = db.prepare(`
+      SELECT u.*, d.district_name FROM district_officer_table u
+      JOIN district_table d ON u.district_code = d.district_code
+      WHERE u.user_id = ? AND u.password = ?
+    `).get(username, password);
 
-        if (result) {
-            const userData = {
-                user_id: result.user_id,
-                username: result.username,
-                phone_number: result.phone_number,
-                address: result.address,
-                aadhar_number: result.aadhar_number,
-                status: result.status,
-            };
-
-            return res.json({ message: 'Login successful', user: userData });
-
-
-        } else {
-            res.status(401).json({ message: 'Invalid credentials' });
+    if (mosquitoUser) {
+      return res.status(200).json({
+        message: 'Mosquito district officer login successful',
+        user: {
+          user_id: mosquitoUser.user_id,
+          username: mosquitoUser.username,
+          role: 'district_user',
+          module: 'mosquito',
+          district_name: mosquitoUser.district_name,
+          status: mosquitoUser.status
         }
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server error' });
+      });
     }
+
+    // 3. Try Chlorination Users
+    const chlUser = db.prepare(`
+      SELECT * FROM chlorination_users
+      WHERE user_id = ? AND password = ?
+    `).get(username, password);
+
+    if (chlUser) {
+      return res.status(200).json({
+        message: 'Chlorination login successful',
+        user: {
+          user_id: chlUser.user_id,
+          username: chlUser.username,
+          role: chlUser.role,
+          module: 'chlorination',
+          hub_id: chlUser.hub_id,
+          status: chlUser.status
+        }
+      });
+    }
+
+    // Invalid credentials
+    res.status(401).json({ message: 'Invalid credentials' });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
 };
 
 const addDistrictOfficer = async (req, res) => {
