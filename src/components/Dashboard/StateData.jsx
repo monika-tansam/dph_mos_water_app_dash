@@ -82,7 +82,7 @@ export default function UserTable() {
             geo: lat && lng ? `Lat: ${lat}, Lng: ${lng}` : "N/A",
             lat: lat || 0,
             lng: lng || 0,
-            areaType: d.areatType || "",
+            areaType: d.areaType || "",
           };
         });
 
