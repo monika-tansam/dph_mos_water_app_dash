@@ -13,7 +13,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-const MapPage = () => {
+const ChlorinationMapPage = () => {
   const { lat, lng } = useParams();
   const latitude = parseFloat(lat);
   const longitude = parseFloat(lng);
@@ -42,4 +42,4 @@ const MapPage = () => {
   );
 };
 
-export default MapPage;
+export default  ChlorinationMapPage;
