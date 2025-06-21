@@ -9,7 +9,6 @@ const SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
 function LoginForm() {
   const navigate = useNavigate();
-
   const [form, setForm] = useState({ username: '', password: '' });
   const [captchaVerified, setCaptchaVerified] = useState(false);
 
@@ -50,29 +49,43 @@ function LoginForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
-        credentials: 'include', // include cookies for session if needed
+        credentials: 'include',
       });
 
       const data = await response.json();
 
       if (response.ok) {
         toast.success('Login successful!');
-        setTimeout(() => navigate('/home'), 2000);
+
+        setTimeout(() => {
+          const { role, module } = data.user;
+
+          // 🔀 Navigate based on module + role
+          if (module === 'mosquito') {
+            if (role === 'mos_admin') navigate('/mosquito-admin-dashboard');
+            else if (role === 'district_user') navigate('/mosquito-district-dashboard');
+            else if (role === 'block_user') navigate('/block-dashboard');
+            else toast.error('Unauthorized mosquito role');
+          } else if (module === 'chlorination') {
+            if (role === 'chl_admin') navigate('/chl-admin-dashboard');
+            else if (role === 'hub_officer') navigate('/hub-dashboard');
+            else toast.error('Unauthorized chlorination role');
+          } else {
+            toast.error('Unknown module');
+          }
+        }, 1500);
       } else {
         toast.error(data.message || 'Login failed');
       }
-    } 
-    catch (error) {
+    } catch (error) {
       console.error(error);
       toast.error('Network error');
     }
   };
 
-  // Prevent scrolling on mount, restore on unmount
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
     const originalHtmlOverflow = document.documentElement.style.overflow;
-
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
 
@@ -84,86 +97,82 @@ function LoginForm() {
 
   return (
     <div
-  style={{
-    backgroundImage: "url('/loginbg1.jpg')",
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-     backgroundRepeat: 'no-repeat',
-    backgroundAttachment: 'fixed',
-    minHeight: '90vh',
-    width: '100vw',
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden', 
-  }}
->
-
-  <Header />
-
-  <div className="d-flex justify-content-center align-items-center vh-100 px-3">
-    <div
-      className="card p-4 shadow-lg w-100"
       style={{
-        maxWidth: '400px',
-        backdropFilter: 'blur(10px)',
-        backgroundColor: 'rgba(255,255,255,0.85)',
-        fontFamily:"Nunito Sans",
+        backgroundImage: "url('/loginbg1.jpg')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
+        minHeight: '90vh',
+        width: '100vw',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
       }}
     >
-      <h4 className="mb-3 text-center">Login</h4>
+      <Header />
+      <div className="d-flex justify-content-center align-items-center vh-100 px-3">
+        <div
+          className="card p-4 shadow-lg w-100"
+          style={{
+            maxWidth: '400px',
+            backdropFilter: 'blur(10px)',
+            backgroundColor: 'rgba(255,255,255,0.85)',
+            fontFamily: 'Nunito Sans',
+          }}
+        >
+          <h4 className="mb-3 text-center">Login</h4>
+          <form onSubmit={handleLogin}>
+            <label className="form-label">Username:</label>
+            <div className="mb-3">
+              <input
+                type="text"
+                className="form-control"
+                name="username"
+                value={form.username}
+                onChange={handleChange}
+                placeholder="Enter username"
+              />
+            </div>
 
-      <form onSubmit={handleLogin}>
-      <label className="form-label">Username:</label>
-        <div className="mb-3">
-          <input
-            type="text"
-            className="form-control"
-            name="username"
-            value={form.username}
-            onChange={handleChange}
-            placeholder="Enter username"
-          />
+            <div className="mb-3">
+              <label className="form-label">Password:</label>
+              <input
+                type="password"
+                className="form-control"
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                placeholder="Enter password"
+              />
+            </div>
+
+            <div className="mb-3 text-end">
+              <a href="/forgetpass" className="text-decoration-none small">
+                Forgot password?
+              </a>
+            </div>
+
+            <div className="mb-3 d-flex justify-content-center">
+              <ReCAPTCHA sitekey={SITE_KEY} onChange={handleCaptcha} />
+            </div>
+
+            <button type="submit" className="btn btn-primary w-100">
+              Login
+            </button>
+          </form>
         </div>
-
-        <div className="mb-3">
-          <label className="form-label">Password:</label>
-          <input
-            type="password"
-            className="form-control"
-            name="password"
-            value={form.password}
-            onChange={handleChange}
-            placeholder="Enter password"
-          />
-        </div>
-
-        <div className="mb-3 text-end">
-          <a href="/forgetpass" className="text-decoration-none small">
-            Forgot password?
-          </a>
-        </div>
-
-        <div className="mb-3 d-flex justify-content-center">
-          <ReCAPTCHA sitekey={SITE_KEY} onChange={handleCaptcha} />
-        </div>
-
-        <button type="submit" className="btn btn-primary w-100">
-          Login
-        </button>
-      </form>
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          theme="colored"
+          limit={2}
+          pauseOnHover
+          draggable
+          hideProgressBar={false}
+        />
+      </div>
     </div>
-    <ToastContainer
-  position="top-right"
-  autoClose={3000}
-  theme="colored"
-  limit={2}
-  pauseOnHover
-  draggable
-  hideProgressBar={false}
-/>
-  </div>
-</div>
-
   );
 }
 
