@@ -5,6 +5,10 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+//Chlorination
+import cron from 'node-cron';
+import { exec } from 'child_process';
+
 // Route imports
 import loginRoute from './routes/login.js';
 import captchaRoute from './routes/captcha.js';
@@ -35,6 +39,27 @@ app.use(cors({
   origin: 'http://localhost:5173', // Or change to your actual frontend
   credentials: true
 }));
+
+// Schedule tasks manually (e.g. daily via cron)
+// app.get('/schedule', async (req, res) => {
+//   await scheduleTasks();
+//   res.send('Task scheduling done.');
+// });
+// Run every day at 6 PM
+cron.schedule('0 18 * * *', () => {
+  console.log('🕒 Running chlorination prediction via cron...');
+  exec('node ./scripts/chlorinationSchedule.js', (error, stdout, stderr) => {
+    if (error) {
+      console.error(`❌ Error: ${error.message}`);
+      return;
+    }
+    if (stderr) {
+      console.error(`⚠️ Stderr: ${stderr}`);
+      return;
+    }
+    console.log(stdout);
+  });
+});
 
 // Session setup
 app.use(session({
