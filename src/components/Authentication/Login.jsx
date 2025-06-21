@@ -63,7 +63,7 @@ function LoginForm() {
           // 🔀 Navigate based on module + role
           if (module === 'mosquito') {
             if (role === 'mos_admin') navigate('/mosquito-admin-dashboard');
-            else if (role === 'district_user') navigate('/district-dashboard');
+            else if (role === 'district_user') navigate('/mosquito-district-dashboard');
             else if (role === 'block_user') navigate('/block-dashboard');
             else toast.error('Unauthorized mosquito role');
           } else if (module === 'chlorination') {
