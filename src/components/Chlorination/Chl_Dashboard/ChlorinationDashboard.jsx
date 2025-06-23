@@ -2,11 +2,12 @@ import React, { useState } from "react";
 import DashboardLayout from "./DashboardLayout";
 import TamilNaduMap from "./TamilNadu";
 
-const dataBoxes = [
-  { title: "Overall Report", number: 200 },
-  { title: "Today Report", number: 300 },
-  { title: "Monthly Report", number: 20 },
-  { title: "Feedback", number: 48 },
+
+ const dataBoxes = [
+  { title: "Chennai Hub", districtCount: 11, hubNumber: 51 },
+  { title: "Coimbatore Hub", districtCount: 8, hubNumber: 30 },
+  { title: "Thiruchirapalli Hub", districtCount: 10, hubNumber: 20 },
+  { title: "Tirunelveli Hub", districtCount: 9, hubNumber: 48 },
 ];
 
 const ChlorinationDashboard = () => {
@@ -34,7 +35,7 @@ const ChlorinationDashboard = () => {
   return (
     <DashboardLayout>
       <div className="row mb-4">
-        {dataBoxes.map(({ title, number }, idx) => (
+      {dataBoxes.map(({ title, districtCount, hubNumber }, idx) => (
           <div key={idx} className="col-12 col-sm-6 col-md-3 mb-3 d-flex">
             <div
               className="card text-center w-100"
@@ -62,9 +63,10 @@ const ChlorinationDashboard = () => {
                 <h5 className="card-title" style={{ fontWeight: 700, color: "steelblue", marginBottom: 8 }}>
                   {title}
                 </h5>
-                <p className="card-text fs-3 fw-bold" style={{ color: "#007556", margin: 0 }}>
-                  {number}
-                </p>
+              <div className="card-text" style={{ color: "#007556", fontWeight: 600 }}>
+               <div>Districts: {districtCount}</div>
+               <div>Hubs: {hubNumber}</div>
+              </div>
               </div>
             </div>
           </div>

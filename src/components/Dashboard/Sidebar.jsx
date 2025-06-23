@@ -23,7 +23,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
   const location = useLocation();
 
   const navItems = [
-    { text: "Home", icon: <HomeIcon />, href: "/home" },
+    { text: "Home", icon: <HomeIcon />, href: "/mosquito-admin-dashboard" },
     { text: "State", icon: <DashboardIcon />, href: "/state" },
     { text: "Data Collection", icon: <BarChartIcon />, href: "/data" },
   ];

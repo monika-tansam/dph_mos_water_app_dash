@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -6,8 +6,10 @@ import {
   Popup,
   GeoJSON,
   useMap,
+  Circle,
 } from "react-leaflet";
 import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 // Custom Marker Icon
 const customIcon = new L.Icon({
@@ -17,11 +19,12 @@ const customIcon = new L.Icon({
   popupAnchor: [0, -30],
 });
 
-// Pin locations
+// Hub Locations
 const pinLocations = [
-  { lat: 13.0827, lng: 80.2707, label: "Chennai" },
-  { lat: 10.7905, lng: 78.7047, label: "Trichy" },
-  { lat: 8.7378, lng: 77.7081, label: "Tirunelveli" },
+  { lat: 13.0827, lng: 80.2707, label: "Chennai", isHub: true },
+  { lat: 11.0168, lng: 76.9558, label: "Coimbatore", isHub: true },
+  { lat: 10.7905, lng: 78.7047, label: "Tiruchirapalli", isHub: true },
+  { lat: 8.7378, lng: 77.7081, label: "Tirunelveli", isHub: true },
 ];
 
 // Bounds for Tamil Nadu
@@ -30,96 +33,121 @@ const BOUNDS = [
   [15, 82],
 ];
 
-// Component to fit and restrict map to bounds
+// Crop map to TN bounds
 function FitToTN() {
   const map = useMap();
   useEffect(() => {
     map.fitBounds(BOUNDS);
     map.setMaxBounds(BOUNDS);
-    map.scrollWheelZoom.enable();
-    map.dragging.enable();
-    map.doubleClickZoom.enable();
-    map.boxZoom.enable();
-    map.keyboard.enable();
   }, [map]);
   return null;
 }
 
-// Zoom In/Out Controls Component
+// Zoom Buttons
 function ZoomControls() {
   const map = useMap();
   const [zoom, setZoom] = useState(map.getZoom());
 
   const zoomIn = () => {
-    const newZoom = Math.min(zoom + 1, map.getMaxZoom());
-    map.setZoom(newZoom);
-    setZoom(newZoom);
+    const z = Math.min(zoom + 1, map.getMaxZoom());
+    map.setZoom(z); setZoom(z);
   };
-
   const zoomOut = () => {
-    const newZoom = Math.max(zoom - 1, map.getMinZoom());
-    map.setZoom(newZoom);
-    setZoom(newZoom);
+    const z = Math.max(zoom - 1, map.getMinZoom());
+    map.setZoom(z); setZoom(z);
   };
 
   return (
     <div style={{
-      position: "absolute",
-      top: 10,
-      left: 10,
-      zIndex: 1000,
-      display: "flex",
-      flexDirection: "column",
-      gap: "5px",
+      position: "absolute", top: 10, left: 10,
+      zIndex: 1000, display: "flex", gap: "5px"
     }}>
-      <button onClick={zoomIn} style={zoomButtonStyle}>+</button>
-      <button onClick={zoomOut} style={zoomButtonStyle}>−</button>
+      <button onClick={zoomIn} style={buttonStyle}>+</button>
+      <button onClick={zoomOut} style={buttonStyle}>−</button>
     </div>
   );
 }
-
-const zoomButtonStyle = {
-  backgroundColor: "#fff",
+const buttonStyle = {
+  background: "#fff",
   border: "1px solid #ccc",
-  borderRadius: "4px",
-  width: "30px",
-  height: "30px",
-  fontSize: "20px",
-  cursor: "pointer",
-  boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
+  width: 30, height: 30,
+  borderRadius: 4, cursor: "pointer",
+  boxShadow: "0 1px 4px rgba(0,0,0,0.3)"
 };
 
-// Main Map Component
+// Zoom & highlight in-child component
+const HubZoomHandler = ({ selectedHub }) => {
+  const map = useMap();
+  useEffect(() => {
+    const hub = pinLocations.find(h => h.label === selectedHub);
+    if (hub) {
+      map.flyTo([hub.lat, hub.lng], 10, { duration: 1.5 });
+    }
+  }, [selectedHub, map]);
+  return null;
+};
+
+// Toast UI
+const Toast = ({ message, onClose }) => (
+  <div style={{
+    position: "absolute", bottom: 20, left: "50%",
+    transform: "translateX(-50%)",
+    background: "#333", color: "#fff",
+    padding: "10px 20px", borderRadius: 8,
+    fontFamily: "Nunito, sans-serif", zIndex: 9999
+  }}>
+    {message}
+    <button onClick={onClose} style={{
+      marginLeft: 10, background: "none",
+      border: "none", color: "#fff",
+      cursor: "pointer", fontWeight: "bold"
+    }}>✕</button>
+  </div>
+);
+
+// Main Component
 const TamilNaduMap = () => {
   const [geoData, setGeoData] = useState(null);
+  const [selectedHub, setSelectedHub] = useState("");
+  const [toastMessage, setToastMessage] = useState("");
 
   useEffect(() => {
     fetch("/maps/tamil-nadu.geojson")
-      .then((res) => res.json())
-      .then((data) => setGeoData(data))
-      .catch((err) => console.error("Failed to load GeoJSON:", err));
+      .then(res => res.json())
+      .then(setGeoData)
+      .catch(err => console.error("GeoJSON load error:", err));
   }, []);
 
-  const tamilStyle = {
-    fillColor: "#FFCC00",
-    weight: 1,
-    fillOpacity: 0.6,
-    color: "#D35400",
+  const onEachDistrict = feature => ({
+    fillColor: "#" + Math.floor(Math.random() * 16777215).toString(16),
+    weight: 1, color: "#666", fillOpacity: 0.4,
+  });
+
+  const handleHubSelect = (label) => {
+    setSelectedHub(label);
+    setToastMessage(`Zoomed to ${label}`);
   };
 
   return (
-    <div style={{ height: "400px", position: "relative" }}>
+    <div style={{ height: 400, position: "relative" }}>
+      <div style={{ position: "absolute", top: 10, right: 10, zIndex: 1000 }}>
+        <select onChange={(e) => handleHubSelect(e.target.value)}
+                style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #ccc", fontFamily: "Nunito, sans-serif" }}>
+          <option value="">Select Hub</option>
+          {pinLocations.map((h, i) => <option key={i} value={h.label}>{h.label}</option>)}
+        </select>
+      </div>
+
       <MapContainer
-        center={[11, 78]}
-        zoom={7}
-        style={{ height: "100%", width: "100%", borderRadius: "0.25rem" }}
-        zoomControl={false}
-        attributionControl={false}
+        center={[11, 78]} zoom={7}
+        style={{ height: "100%", width: "100%" }}
+        zoomControl={false} attributionControl={false}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <FitToTN />
         <ZoomControls />
-        {geoData && <GeoJSON data={geoData} style={tamilStyle} />}
+        {selectedHub && <HubZoomHandler selectedHub={selectedHub} />}
+        {geoData && <GeoJSON data={geoData} style={onEachDistrict} />}
         {pinLocations.map((loc, i) => (
           <Marker key={i} position={[loc.lat, loc.lng]} icon={customIcon}>
             <Popup>
@@ -129,9 +157,17 @@ const TamilNaduMap = () => {
                 <p>Longitude: {loc.lng}</p>
               </div>
             </Popup>
+            {selectedHub === loc.label && (
+              <Circle
+                center={[loc.lat, loc.lng]} radius={8000}
+                pathOptions={{ color: "#007BFF", fillOpacity: 0.2 }}
+              />
+            )}
           </Marker>
         ))}
       </MapContainer>
+
+      {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage("")} />}
     </div>
   );
 };
