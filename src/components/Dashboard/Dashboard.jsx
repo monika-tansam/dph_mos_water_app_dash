@@ -9,7 +9,7 @@ const dataBoxes = [
   { title: "Feedback", number: 48 },
 ];
 
-const Dashboard = () => {
+const Mos_Dashboard = () => {
   const today = new Date();
 
   const formatDate = (date) => date.toISOString().split("T")[0];
@@ -190,4 +190,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default Mos_Dashboard;
