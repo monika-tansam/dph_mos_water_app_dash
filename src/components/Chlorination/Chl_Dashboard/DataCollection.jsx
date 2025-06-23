@@ -8,6 +8,9 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
+  Select,
+  MenuItem,
+  FormControl,
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import CloseIcon from "@mui/icons-material/Close";
@@ -17,6 +20,7 @@ export default function ChlorinationStateData() {
   const [imgSrc, setImgSrc] = useState("");
   const [openMap, setOpenMap] = useState(false);
   const [mapCoords, setMapCoords] = useState({ lat: 0, lng: 0 });
+  const [hubFilter, setHubFilter] = useState("");
 
   const rows = [
     {
@@ -35,7 +39,7 @@ export default function ChlorinationStateData() {
       id: 2,
       userId: "U002",
       username: "SitaRani",
-      hub: "Krishnagiri",
+      hub: "Coimbatore",
       district: "Coimbatore",
       userGeo: "11.0168, 76.9558",
       image: "https://via.placeholder.com/150",
@@ -56,6 +60,12 @@ export default function ChlorinationStateData() {
       lng: 78.1198,
     },
   ];
+
+  const hubs = ["Chennai", "Thiruchirapalli", "Tirunelveli", "Coimbatore"];
+
+  const filteredRows = rows.filter((row) =>
+    hubFilter ? row.hub === hubFilter : true
+  );
 
   const columns = [
     { field: "id", headerName: "S.No", width: 80 },
@@ -108,9 +118,30 @@ export default function ChlorinationStateData() {
           DATA COLLECTION
         </Typography>
 
+        {/* Filter */}
+        <Box display="flex" gap={2} alignItems="center" mb={2}>
+          <FormControl sx={{ minWidth: 200 }} size="small">
+            <Select
+              displayEmpty
+              value={hubFilter}
+              onChange={(e) => setHubFilter(e.target.value)}
+              sx={{ fontFamily: "Nunito, sans-serif" }}
+            >
+              <MenuItem value="">
+                <em>All Hubs</em>
+              </MenuItem>
+              {hubs.map((hub, index) => (
+                <MenuItem key={index} value={hub} sx={{ fontFamily: "Nunito, sans-serif" }}>
+                  {hub}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+
         <Box style={{ height: 500, width: "100%" }}>
           <DataGrid
-            rows={rows}
+            rows={filteredRows}
             columns={columns}
             pageSize={5}
             rowsPerPageOptions={[5]}

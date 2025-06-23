@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -33,7 +33,36 @@ const BOUNDS = [
   [15, 82],
 ];
 
-// Crop map to TN bounds
+// Chennai Hub Districts + Color
+const chennaiHubDistricts = [
+  "Chennai", "Thirupathur", "Villupuram", "Kallakurichi",
+  "Chengalpattu", "Vellore", "Ranipet",
+  "Thiruvallur", "Thiruvannamalai", "Kancheepuram", "Cuddalore"
+];
+const chennaiHubColor = "#4CAF50";
+
+const coimbatoreHubDistricts = [
+  "Coimbatore", "Erode", "Tiruppur", "Nilgiris", "Salem", "Namakkal", "Karur"
+];
+const coimbatoreHubColor = "#FF8C00"; // dark orange
+
+const trichyHubDistricts = [
+  "Tiruchirappalli", "Perambalur", "Ariyalur", "Thanjavur", "Tiruvarur", "Nagapattinam", "Pudukkottai"
+];
+const trichyHubColor = "#DC143C"; // dark turquoise
+
+const tirunelveliHubDistricts = [
+  "Tirunelveli", "Thoothukudi", "Tenkasi", "Kanyakumari", "Virudhunagar", "Ramanathapuram"
+];
+const tirunelveliHubColor = "#8A2BE2"; // blue violet
+
+const districtColors = {
+  "Chennai": "#00bfff",
+  "Coimbatore": "#00bfff",
+  "Tiruchirappalli": "#00bfff",
+  "Tirunelveli": "#00bfff"
+};
+
 function FitToTN() {
   const map = useMap();
   useEffect(() => {
@@ -43,7 +72,6 @@ function FitToTN() {
   return null;
 }
 
-// Zoom Buttons
 function ZoomControls() {
   const map = useMap();
   const [zoom, setZoom] = useState(map.getZoom());
@@ -67,6 +95,7 @@ function ZoomControls() {
     </div>
   );
 }
+
 const buttonStyle = {
   background: "#fff",
   border: "1px solid #ccc",
@@ -75,7 +104,6 @@ const buttonStyle = {
   boxShadow: "0 1px 4px rgba(0,0,0,0.3)"
 };
 
-// Zoom & highlight in-child component
 const HubZoomHandler = ({ selectedHub }) => {
   const map = useMap();
   useEffect(() => {
@@ -87,7 +115,6 @@ const HubZoomHandler = ({ selectedHub }) => {
   return null;
 };
 
-// Toast UI
 const Toast = ({ message, onClose }) => (
   <div style={{
     position: "absolute", bottom: 20, left: "50%",
@@ -105,7 +132,6 @@ const Toast = ({ message, onClose }) => (
   </div>
 );
 
-// Main Component
 const TamilNaduMap = () => {
   const [geoData, setGeoData] = useState(null);
   const [selectedHub, setSelectedHub] = useState("");
@@ -118,10 +144,32 @@ const TamilNaduMap = () => {
       .catch(err => console.error("GeoJSON load error:", err));
   }, []);
 
-  const onEachDistrict = feature => ({
-    fillColor: "#" + Math.floor(Math.random() * 16777215).toString(16),
-    weight: 1, color: "#666", fillOpacity: 0.4,
-  });
+ const styleDistrict = (feature) => {
+  const name = feature.properties.district;
+
+  const isChennai = selectedHub === "Chennai" && chennaiHubDistricts.includes(name);
+  const isCoimbatore = selectedHub === "Coimbatore" && coimbatoreHubDistricts.includes(name);
+  const isTrichy = selectedHub === "Tiruchirapalli" && trichyHubDistricts.includes(name);
+  const isTirunelveli = selectedHub === "Tirunelveli" && tirunelveliHubDistricts.includes(name);
+
+  const fillColor =
+    isChennai ? chennaiHubColor :
+    isCoimbatore ? coimbatoreHubColor :
+    isTrichy ? trichyHubColor :
+    isTirunelveli ? tirunelveliHubColor :
+    (districtColors[name] || "#FFCC00");
+
+  const fillOpacity =
+    isChennai || isCoimbatore || isTrichy || isTirunelveli ? 0.6 : 0.5;
+
+  return {
+    fillColor,
+    weight: 1,
+    color: "#666",
+    fillOpacity,
+  };
+};
+
 
   const handleHubSelect = (label) => {
     setSelectedHub(label);
@@ -147,7 +195,7 @@ const TamilNaduMap = () => {
         <FitToTN />
         <ZoomControls />
         {selectedHub && <HubZoomHandler selectedHub={selectedHub} />}
-        {geoData && <GeoJSON data={geoData} style={onEachDistrict} />}
+        {geoData && <GeoJSON data={geoData} style={styleDistrict} />}
         {pinLocations.map((loc, i) => (
           <Marker key={i} position={[loc.lat, loc.lng]} icon={customIcon}>
             <Popup>
