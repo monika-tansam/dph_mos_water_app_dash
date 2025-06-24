@@ -4,10 +4,10 @@ import TamilNaduMap from "./TamilNadu";
 
 
  const dataBoxes = [
-  { title: "Chennai Hub", districtCount: 11, hubNumber: 51 },
-  { title: "Coimbatore Hub", districtCount: 8, hubNumber: 30 },
-  { title: "Thiruchirapalli Hub", districtCount: 10, hubNumber: 20 },
-  { title: "Tirunelveli Hub", districtCount: 9, hubNumber: 48 },
+  { title: "Chennai ", districtCount: 11 },
+  { title: "Coimbatore ", districtCount: 8 },
+  { title: "Thiruchirapalli ", districtCount: 10 },
+  { title: "Tirunelveli ", districtCount: 9 },
 ];
 
 const ChlorinationDashboard = () => {
@@ -65,7 +65,7 @@ const ChlorinationDashboard = () => {
                 </h5>
               <div className="card-text" style={{ color: "#007556", fontWeight: 600 }}>
                <div>Districts: {districtCount}</div>
-               <div>Hubs: {hubNumber}</div>
+               {/* <div>Hubs: {hubNumber}</div> */}
               </div>
               </div>
             </div>
