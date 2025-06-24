@@ -114,16 +114,100 @@ export const addDataCollection = (req, res) => {
     );
 
     return res.status(201).json({ message: 'Data inserted successfully' });
-} catch (err) {
-  console.error('addDataCollection error:', err);
-  return res.status(500).json({ message: err.message || 'Server error' });
-}
+  } catch (err) {
+    console.error('addDataCollection error:', err);
+    return res.status(500).json({ message: err.message || 'Server error' });
+  }
+};
+// Chlorination hub and district master table
+export const addChlorinationHub = (req, res) => {
+  const { hub_id, hub_name } = req.body;
 
+  if (!hub_id || !hub_name) {
+    return res.status(400).json({ message: 'Missing hub_id or hub_name' });
+  }
+
+  try {
+    const stmt = db.prepare(`INSERT INTO chlorination_hubs (hub_id, hub_name) VALUES (?, ?)`);
+    stmt.run(hub_id, hub_name);
+    return res.status(201).json({ message: 'Hub created successfully' });
+  } catch (err) {
+    console.error('addChlorinationHub error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+export const addChlorinationDistrict = (req, res) => {
+  const { district_code, district_name, hub_id } = req.body;
+
+  if (!district_code || !district_name || !hub_id) {
+    return res.status(400).json({ message: 'Missing district data' });
+  }
+
+  try {
+    const stmt = db.prepare(`
+      INSERT INTO chlorination_districts (district_code, district_name, hub_id)
+      VALUES (?, ?, ?)
+    `);
+    stmt.run(district_code, district_name, hub_id);
+    return res.status(201).json({ message: 'District added to hub successfully' });
+  } catch (err) {
+    console.error('addChlorinationDistrict error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const getAllHubsWithDistricts = (req, res) => {
+  try {
+    const hubs = db.prepare(`SELECT * FROM chlorination_hubs`).all();
+    const districts = db.prepare(`SELECT * FROM chlorination_districts`).all();
+
+    const result = hubs.map(hub => ({
+      ...hub,
+      districts: districts.filter(d => d.hub_id === hub.hub_id)
+    }));
+
+    return res.json(result);
+  } catch (err) {
+    console.error('getAllHubsWithDistricts error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
+// Chlorination inspection testers
+export const createInspectionTester = (req, res) => {
+  const { tester_name, hub_id } = req.body;
+
+  if (!tester_name || !hub_id) {
+    return res.status(400).json({ message: 'Missing tester_name or hub_id' });
+  }
+
+  try {
+    const count = db.prepare(`
+      SELECT COUNT(*) AS total FROM chlorination_inspection_testers WHERE hub_id = ?
+    `).get(hub_id);
+
+    if (count.total >= 4) {
+      return res.status(400).json({ message: 'Maximum 4 testers allowed per hub' });
+    }
+
+    const tester_id = uuidv4();
+    db.prepare(`
+      INSERT INTO chlorination_inspection_testers (tester_id, tester_name, hub_id)
+      VALUES (?, ?, ?)
+    `).run(tester_id, tester_name, hub_id);
+
+    return res.status(201).json({ message: 'Inspection tester created', tester_id });
+  } catch (err) {
+    console.error('createInspectionTester error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
 };
 
 export default {
   getDashboardData,
   getDistrictData,
   getDistrictOfficers,
-  addDataCollection
+  addDataCollection,
+  createInspectionTester
 };

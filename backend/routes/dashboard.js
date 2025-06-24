@@ -2,6 +2,12 @@
 import express from 'express';
 import db from '../utils/db.js';
 import dashboardController from '../controllers/dashboardController.js';
+import {
+  addChlorinationHub,
+  addChlorinationDistrict,
+  getAllHubsWithDistricts
+} from '../controllers/chlorinationController.js';
+
 
 const router = express.Router();
 
@@ -9,6 +15,11 @@ router.post('/', dashboardController.getDashboardData);
 router.get('/district', dashboardController.getDistrictData);
 router.get('/district-officers', dashboardController.getDistrictOfficers);
 router.post('/datacollection', dashboardController.addDataCollection);
+
+// Chlorination master Table
+router.post('/hub', addChlorinationHub);
+router.post('/district', addChlorinationDistrict);
+router.get('/hubs-districts', getAllHubsWithDistricts);
 
 // Chlorination prediction route
 router.get('/', (req, res) => {

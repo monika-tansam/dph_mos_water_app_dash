@@ -10,6 +10,8 @@ import ChlorinationDashboard from './components/Chlorination/Chl_Dashboard/Chlor
 import ChlorinationMapPage from './components/Chlorination/Chl_Dashboard/ChlorinationMapPage';
 import ChlorinationStateData from './components/Chlorination/Chl_Dashboard/DataCollection';
 import ChlorinationUser from './components/Chlorination/Chl_Dashboard/ChlorinationUser';
+import HubDistrictMaster from './components/Chlorination/Chl_Dashboard/ChlorinationStateMaster';
+
 function App() {
   return (
     <Router>
@@ -25,6 +27,7 @@ function App() {
           <Route path="/chlorination-state" element={<ChlorinationUser />} />
           <Route path="/chlorination-data" element={<ChlorinationStateData />} /> 
           <Route path="/chlorination-map/:lat/:lng" element={<ChlorinationMapPage />} />
+          <Route path="/chlorination-HUB-district-master-table" element={<HubDistrictMaster />}/>
       </Routes>
       
     </Router>
