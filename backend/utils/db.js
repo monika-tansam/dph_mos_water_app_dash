@@ -35,14 +35,18 @@ db.exec(`
     image_base64 TEXT
   );
 
-  CREATE TABLE IF NOT EXISTS chlorination_users (
-    user_id TEXT PRIMARY KEY,
-    username TEXT UNIQUE,
-    password TEXT,
-    role TEXT,
-    hub_id TEXT,
-    status TEXT
-  );
+CREATE TABLE IF NOT EXISTS chlorination_hub_users (
+  user_id TEXT PRIMARY KEY,
+  username TEXT UNIQUE,
+  email TEXT,
+  password TEXT,
+  hub_id TEXT,
+  hub_name TEXT,           
+  phone_number TEXT,
+  address TEXT,
+  status TEXT
+);
+
 
   CREATE TABLE IF NOT EXISTS chlorination_inspection_testers (
     tester_id TEXT PRIMARY KEY,
@@ -51,7 +55,7 @@ db.exec(`
     FOREIGN KEY (hub_id) REFERENCES chlorination_users(hub_id)
   );
 
-  // Master table for chlorination data (HUB centre and District)
+  -- Master table for chlorination data (HUB centre and District)
   CREATE TABLE IF NOT EXISTS chlorination_hubs (
     hub_id TEXT PRIMARY KEY,
     hub_name TEXT UNIQUE

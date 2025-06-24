@@ -1,5 +1,4 @@
 import express from 'express';
-import session from 'express-session';
 import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
@@ -14,7 +13,6 @@ import loginRoute from './routes/login.js';
 import captchaRoute from './routes/captcha.js';
 import forgotPasswordRoute from './routes/forgotPassword.js';
 import dashboardRoute from './routes/dashboard.js';
-
 const app = express();
 
 // Setup __dirname (for ES modules)
@@ -61,18 +59,11 @@ cron.schedule('0 18 * * *', () => {
   });
 });
 
-// Session setup
-app.use(session({
-  secret: 'your-secret-key',
-  resave: false,
-  saveUninitialized: true,
-  cookie: { maxAge: 5 * 60 * 1000 }
-}));
-
 // ✅ Route setup
 app.use('/login', loginRoute);
 app.use('/captcha', captchaRoute);
 app.use('/forgot-password', forgotPasswordRoute);
+// app.use('/dashboard', dashboardRoute);
 app.use('/dashboard', dashboardRoute);
 
 // Start server
