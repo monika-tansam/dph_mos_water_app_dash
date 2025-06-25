@@ -11,6 +11,9 @@ import ChlorinationStateData from './components/Chlorination/Chl_Dashboard/DataC
 import ChlorinationUser from './components/Chlorination/Chl_Dashboard/ChlorinationUser';
 import HubDistrictMaster from './components/Chlorination/Chl_Dashboard/ChlorinationStateMaster';
 
+import HubDashboard from './components/Chlorination/Hub_Dashboard/hubDashboard';
+import HubStateData from './components/Chlorination/Hub_Dashboard/hubDataCollection';
+import HubUser from './components/Chlorination/Hub_Dashboard/hubUser';
 function App() {
   return (
     <Router>
@@ -25,8 +28,12 @@ function App() {
           <Route path="/chl-admin-dashboard" element={<ChlorinationDashboard />} />
           <Route path="/chlorination-state" element={<ChlorinationUser />} />
           <Route path="/chlorination-data" element={<ChlorinationStateData />} /> 
-          <Route path="/chlorination-map/:lat/:lng" element={<ChlorinationMapPage />} />
-          <Route path="/chlorination-HUB-district-master-table" element={<HubDistrictMaster />}/>
+          {/* <Route path="/chlorination-map/:lat/:lng" element={<ChlorinationMapPage />} /> */}
+          <Route path="/chlorination-HUB-district-master-table" element={<HubDistrictMaster />} />
+
+          <Route path="/hub-dashboard" element={<HubDashboard />} />
+          <Route path="/hub-data" element={<HubStateData />} />
+          <Route path="/hub-user" element={<HubUser />} />
       </Routes>
       
     </Router>
