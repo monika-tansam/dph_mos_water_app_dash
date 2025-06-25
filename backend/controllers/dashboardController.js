@@ -2,6 +2,7 @@ import db from '../utils/db.js';
 import fs from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import bcrypt from 'bcryptjs';
 
 export const getDashboardData = (req, res) => {
   const { username } = req.body;
@@ -144,7 +145,7 @@ function generateDistrictCode(districtName, hub_id) {
 
 export const addChlorinationHub = (req, res) => {
   const { hub_name } = req.body;
-
+  
   if (!hub_name) {
     return res.status(400).json({ message: 'Missing hub_name' });
   }
@@ -254,16 +255,14 @@ export const addChlorinationUser = (req, res) => {
     const count = db.prepare(`SELECT COUNT(*) AS total FROM chlorination_hub_users WHERE hub_id = ?`).get(hub_id);
     const userNumber = String(count.total + 1).padStart(3, '0');
     const user_id = `${hub_id}USR${userNumber}`;
+    const hashedPassword = bcrypt.hashSync(password, 10);
 
     const stmt = db.prepare(`
       INSERT INTO chlorination_hub_users 
-      (user_id, username, email, password, hub_id, hub_name, phone_number, address, status)
+      (user_id, username, email, hashedPassword, hub_id, hub_name, phone_number, address, status)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
-
-
-    
-
+    stmt.run(user_id, username, email, password, hub_id, hub.hub_name, phone_number, address, status);
 
     return res.status(201).json({ message: 'User added successfully', user_id });
   } catch (err) {
@@ -271,3 +270,16 @@ export const addChlorinationUser = (req, res) => {
     return res.status(500).json({ message: 'Server error' });
   }
 };
+
+// Get all chlorination hub users
+export const getChlorinationUsers = (req, res) => {
+  try {
+    const stmt = db.prepare(`SELECT * FROM chlorination_hub_users`);
+    const users = stmt.all();
+    res.json(users);
+  } catch (err) {
+    console.error("getChlorinationUsers error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+

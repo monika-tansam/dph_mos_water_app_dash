@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS chlorination_hub_users (
   user_id TEXT PRIMARY KEY,
   username TEXT UNIQUE,
   email TEXT,
-  password TEXT,
+  hashedPassword TEXT,
   hub_id TEXT,
   hub_name TEXT,           
   phone_number TEXT,

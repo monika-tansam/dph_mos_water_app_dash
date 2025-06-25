@@ -10,7 +10,8 @@ import {
   addChlorinationHub,
   addChlorinationDistrict,
   getAllHubsWithDistricts,
-  addChlorinationUser
+  addChlorinationUser,
+  getChlorinationUsers 
 } from '../controllers/dashboardController.js';
 
 
@@ -29,7 +30,7 @@ router.get('/hubs-districts', getAllHubsWithDistricts);
 
 // Chlorination user creation
 router.post('/chl-hubusers', addChlorinationUser);
-
+router.get('/chl-hubusers', getChlorinationUsers);
 
 // Chlorination prediction route
 router.get('/', (req, res) => {

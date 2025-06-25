@@ -27,6 +27,7 @@ const ChlUserStats = () => {
   const [hubsData, setHubsData] = useState([]);
   const [open, setOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
 
   const [form, setForm] = useState({
     user_id: "",
@@ -36,23 +37,34 @@ const ChlUserStats = () => {
     hub_id: "",
     phone_number: "",
     address: "",
-    aadhar_number: "",
     status: "Active",
   });
-  const [passwordError, setPasswordError] = useState("");
 
+  // Fetch users and hubs on load
   useEffect(() => {
-    const fetchHubs = async () => {
-      try {
-        const res = await fetch("http://localhost:3000/dashboard/hubs-districts");
-        const data = await res.json();
-        setHubsData(data);
-      } catch (err) {
-        console.error("Failed to fetch hubs:", err);
-      }
-    };
+    fetchUsers();
     fetchHubs();
   }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/dashboard/chl-hubusers");
+      const data = await res.json();
+      setUsers(data);
+    } catch (err) {
+      console.error("Failed to fetch users:", err);
+    }
+  };
+
+  const fetchHubs = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/dashboard/hubs-districts");
+      const data = await res.json();
+      setHubsData(data);
+    } catch (err) {
+      console.error("Failed to fetch hubs:", err);
+    }
+  };
 
   const validatePassword = (value) =>
     /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+[\]{};':"\\|,.<>/?]).{8,}$/.test(value);
@@ -62,7 +74,7 @@ const ChlUserStats = () => {
 
     if (name === "hub_id") {
       const userCount = users.filter((u) => u.hub_id === value).length + 1;
-      const newUserId = `${value}-${String(userCount).padStart(2, "0")}`;
+      const newUserId = `${value}USR${String(userCount).padStart(3, "0")}`;
       setForm((prev) => ({
         ...prev,
         hub_id: value,
@@ -72,7 +84,6 @@ const ChlUserStats = () => {
     }
 
     setForm((prev) => ({ ...prev, [name]: value }));
-
 
     if (name === "password") {
       setPasswordError(
@@ -84,7 +95,6 @@ const ChlUserStats = () => {
   };
 
   const handleSubmit = async () => {
-
     if (!validatePassword(form.password)) {
       setPasswordError(
         "Password must be 8+ chars, 1 uppercase, 1 number, 1 special char"
@@ -105,7 +115,9 @@ const ChlUserStats = () => {
       }
 
       alert("User added successfully");
-      setUsers([...users, form]);
+      await fetchUsers(); // Refresh users from DB
+
+      // Reset form
       setForm({
         user_id: "",
         username: "",
@@ -158,9 +170,10 @@ const ChlUserStats = () => {
             { field: "username", headerName: "Username", width: 150 },
             { field: "email", headerName: "Email", width: 180 },
             { field: "password", headerName: "Password", width: 150 },
-            { field: "hub_id", headerName: "Hub", width: 120 },
+            { field: "hub_id", headerName: "Hub ID", width: 120 },
             { field: "hub_name", headerName: "Hub Name", width: 180 },
             { field: "phone_number", headerName: "Phone", width: 130 },
+            { field: "address", headerName: "Address", width: 200 },
             { field: "status", headerName: "Status", width: 100 },
           ]}
           getRowId={(row) => row.user_id}
@@ -168,12 +181,11 @@ const ChlUserStats = () => {
           sx={{ height: 480 }}
         />
 
-        {/* Dialog for Add User */}
+        {/* Add User Dialog */}
         <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
           <DialogTitle>Add User</DialogTitle>
           <DialogContent>
             <Stack spacing={2} mt={1}>
-              {/* Only show form after hub is selected */}
               <FormControl fullWidth>
                 <InputLabel id="hub-label">Hub</InputLabel>
                 <Select
