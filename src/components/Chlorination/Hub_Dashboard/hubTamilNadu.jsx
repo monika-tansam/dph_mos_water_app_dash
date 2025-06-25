@@ -140,7 +140,7 @@ const blockColorMap = {
   "Temple (Festival Camp)": "#ffbb78"
 };
 
-const TamilNaduMap = () => {
+const HubTamilNaduMap = () => {
   const [geoData, setGeoData] = useState(null);
   const [selectedHub, setSelectedHub] = useState("");
   const [selectedDistrict, setSelectedDistrict] = useState("");
@@ -302,4 +302,4 @@ const selectStyle = {
   width: "100%"
 };
 
-export default TamilNaduMap;
+export default HubTamilNaduMap;
