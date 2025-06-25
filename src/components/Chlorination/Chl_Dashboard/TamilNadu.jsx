@@ -140,68 +140,6 @@ const blockColorMap = {
   "Temple (Festival Camp)": "#ffbb78"
 };
 
-const simulatedBlocks = {
-  "Chennai": [
-    { name: "Corporation", lat: 13.08, lng: 80.27 },
-    { name: "Municipality", lat: 13.04, lng: 80.20 },
-    { name: "Town Panchayat", lat: 13.00, lng: 80.21 },
-    { name: "Government Hospital", lat: 13.02, lng: 80.24 },
-    { name: "Railway Station", lat: 13.09, lng: 80.28 },
-    { name: "Approved Home", lat: 13.06, lng: 80.22 },
-    { name: "Prison", lat: 13.07, lng: 80.26 },
-    { name: "Government Institution", lat: 13.03, lng: 80.23 },
-    { name: "Educational Institution", lat: 13.05, lng: 80.25 },
-    { name: "PWD (Poondi)", lat: 13.10, lng: 80.30 },
-    { name: "Temple (Festival Camp)", lat: 13.01, lng: 80.19 }
-  ]
-};
-
-const BlockMarkers = ({ selectedDistrict }) => {
-  if (!selectedDistrict || !simulatedBlocks[selectedDistrict]) return null;
-
-  return (
-    <>
-      {simulatedBlocks[selectedDistrict].map((b, i) => (
-        <Marker key={i} position={[b.lat, b.lng]}>
-          <Popup>
-            <div style={{
-              fontFamily: "Nunito, sans-serif",
-              background: "#f5f8ff",
-              borderRadius: "10px",
-              padding: "12px 15px",
-              border: `2px solid ${blockColorMap[b.name] || "#3498db"}`,
-              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
-              maxWidth: "240px"
-            }}>
-              <div style={{
-                fontWeight: "600",
-                fontSize: "15px",
-                color: "#2c3e50",
-                marginBottom: "6px"
-              }}>
-                🏷️ {b.name}
-              </div>
-              <div style={{ fontSize: "13px", color: "#555" }}>
-                <strong>Lat:</strong> {b.lat.toFixed(4)}<br />
-                <strong>Lng:</strong> {b.lng.toFixed(4)}
-              </div>
-              <div style={{
-                marginTop: "8px",
-                fontStyle: "italic",
-                fontSize: "12px",
-                color: "#888"
-              }}>
-                Add a note or comment here...
-              </div>
-            </div>
-          </Popup>
-        </Marker>
-      ))}
-    </>
-  );
-};
-
-
 const TamilNaduMap = () => {
   const [geoData, setGeoData] = useState(null);
   const [selectedHub, setSelectedHub] = useState("");
@@ -350,7 +288,7 @@ const TamilNaduMap = () => {
           </Marker>
         ))}
 
-        <BlockMarkers selectedDistrict={selectedDistrict} />
+       
       </MapContainer>
     </div>
   );
