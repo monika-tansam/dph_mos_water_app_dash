@@ -1,7 +1,8 @@
-// controllers/dashboardController.js
 import db from '../utils/db.js';
 import fs from 'fs';
 import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
+import bcrypt from 'bcryptjs';
 
 export const getDashboardData = (req, res) => {
   const { username } = req.body;
@@ -64,7 +65,7 @@ export const getDistrictOfficers = (req, res) => {
 };
 
 export const addDataCollection = (req, res) => {
-    console.log('Incoming body:', req.body);
+  console.log('Incoming body:', req.body);
 
   try {
     const {
@@ -76,7 +77,7 @@ export const addDataCollection = (req, res) => {
       date,
       time,
       user_geolocation,
-      image_base64, // base64 image string
+      image_base64
     } = req.body;
 
     if (!user_id || !username) {
@@ -110,20 +111,175 @@ export const addDataCollection = (req, res) => {
       date,
       time,
       JSON.stringify(userGeo),
-      imagePath // saved path to image file
+      imagePath
     );
 
     return res.status(201).json({ message: 'Data inserted successfully' });
-} catch (err) {
-  console.error('addDataCollection error:', err);
-  return res.status(500).json({ message: err.message || 'Server error' });
+  } catch (err) {
+    console.error('addDataCollection error:', err);
+    return res.status(500).json({ message: err.message || 'Server error' });
+  }
+};
+
+function generateHubId() {
+  const existing = db.prepare(`SELECT hub_id FROM chlorination_hubs ORDER BY hub_id DESC LIMIT 1`).get();
+  if (!existing) return 'HUB001';
+  const lastId = parseInt(existing.hub_id.replace('HUB', ''));
+  return `HUB${String(lastId + 1).padStart(3, '0')}`;
 }
 
+function generateDistrictCode(districtName, hub_id) {
+  const prefix = districtName.trim().substring(0, 5).toUpperCase();
+
+  const count = db.prepare(`
+    SELECT COUNT(*) as total FROM chlorination_districts 
+    WHERE hub_id = ?
+  `).get(hub_id);
+
+  const number = count.total + 1;
+  return `${prefix}${String(number).padStart(3, '0')}`;
+}
+
+
+
+
+export const addChlorinationHub = (req, res) => {
+  const { hub_name } = req.body;
+  
+  if (!hub_name) {
+    return res.status(400).json({ message: 'Missing hub_name' });
+  }
+
+  try {
+    const hub_id = generateHubId();
+    const stmt = db.prepare(`INSERT INTO chlorination_hubs (hub_id, hub_name) VALUES (?, ?)`);
+    stmt.run(hub_id, hub_name);
+    return res.status(201).json({ message: 'Hub created successfully', hub_id });
+  } catch (err) {
+    console.error('addChlorinationHub error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
 };
 
-export default {
-  getDashboardData,
-  getDistrictData,
-  getDistrictOfficers,
-  addDataCollection
+export const addChlorinationDistrict = (req, res) => {
+  const { district_name, hub_id } = req.body;
+
+  if (!district_name || !hub_id) {
+    return res.status(400).json({ message: 'Missing district data' });
+  }
+
+  try {
+    const district_code = generateDistrictCode(district_name, hub_id);
+    const stmt = db.prepare(`
+      INSERT INTO chlorination_districts (district_code, district_name, hub_id)
+      VALUES (?, ?, ?)
+    `);
+    stmt.run(district_code, district_name, hub_id);
+    return res.status(201).json({ message: 'District added successfully', district_code });
+  } catch (err) {
+    console.error('addChlorinationDistrict error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
 };
+
+
+export const getAllHubsWithDistricts = (req, res) => {
+  try {
+    const hubs = db.prepare(`SELECT * FROM chlorination_hubs`).all();
+    const districts = db.prepare(`SELECT * FROM chlorination_districts`).all();
+
+    const result = hubs.map(hub => ({
+      ...hub,
+      districts: districts.filter(d => d.hub_id === hub.hub_id)
+    }));
+
+    return res.json(result);
+  } catch (err) {
+    console.error('getAllHubsWithDistricts error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const createInspectionTester = (req, res) => {
+  const { tester_name, hub_id } = req.body;
+
+  if (!tester_name || !hub_id) {
+    return res.status(400).json({ message: 'Missing tester_name or hub_id' });
+  }
+
+  try {
+    const count = db.prepare(`
+      SELECT COUNT(*) AS total FROM chlorination_inspection_testers WHERE hub_id = ?
+    `).get(hub_id);
+
+    if (count.total >= 4) {
+      return res.status(400).json({ message: 'Maximum 4 testers allowed per hub' });
+    }
+
+    const tester_id = uuidv4();
+    db.prepare(`
+      INSERT INTO chlorination_inspection_testers (tester_id, tester_name, hub_id)
+      VALUES (?, ?, ?)
+    `).run(tester_id, tester_name, hub_id);
+
+    return res.status(201).json({ message: 'Inspection tester created', tester_id });
+  } catch (err) {
+    console.error('createInspectionTester error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const addChlorinationUser = (req, res) => {
+  const {
+    username,
+    email,
+    password,
+    hub_id,
+    phone_number,
+    address,
+    status
+  } = req.body;
+
+  if (!username || !email || !password || !hub_id) {
+    return res.status(400).json({ message: 'Missing required fields' });
+  }
+
+  try {
+    // 🔍 Get the hub_name from the hub_id
+    const hub = db.prepare(`SELECT hub_name FROM chlorination_hubs WHERE hub_id = ?`).get(hub_id);
+
+    if (!hub) {
+      return res.status(400).json({ message: 'Invalid hub_id. No such hub exists.' });
+    }
+
+    const count = db.prepare(`SELECT COUNT(*) AS total FROM chlorination_hub_users WHERE hub_id = ?`).get(hub_id);
+    const userNumber = String(count.total + 1).padStart(3, '0');
+    const user_id = `${hub_id}USR${userNumber}`;
+    const hashedPassword = bcrypt.hashSync(password, 10);
+
+    const stmt = db.prepare(`
+      INSERT INTO chlorination_hub_users 
+      (user_id, username, email, hashedPassword, hub_id, hub_name, phone_number, address, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    stmt.run(user_id, username, email, password, hub_id, hub.hub_name, phone_number, address, status);
+
+    return res.status(201).json({ message: 'User added successfully', user_id });
+  } catch (err) {
+    console.error('addChlorinationUser error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Get all chlorination hub users
+export const getChlorinationUsers = (req, res) => {
+  try {
+    const stmt = db.prepare(`SELECT * FROM chlorination_hub_users`);
+    const users = stmt.all();
+    res.json(users);
+  } catch (err) {
+    console.error("getChlorinationUsers error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
