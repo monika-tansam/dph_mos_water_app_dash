@@ -237,7 +237,9 @@ export const addChlorinationUser = (req, res) => {
     hub_id,
     phone_number,
     address,
-    status
+    status,
+    role = 'hub_officer',
+    module = 'chlorination'
   } = req.body;
 
   if (!username || !email || !password || !hub_id) {
@@ -256,9 +258,6 @@ export const addChlorinationUser = (req, res) => {
     const user_id = `${hub_id}USR${userNumber}`;
     const hashedPassword = bcrypt.hashSync(password, 10);
 
-    const role = 'hub_officer';
-    const module = 'chlorination';
-
     const stmt = db.prepare(`
       INSERT INTO chlorination_hub_users 
       (user_id, username, email, hashedPassword, hub_id, hub_name, phone_number, address, status, role, module)
@@ -272,7 +271,6 @@ export const addChlorinationUser = (req, res) => {
     return res.status(500).json({ message: 'Server error' });
   }
 };
-
 
 // Get all chlorination hub users
 export const getChlorinationUsers = (req, res) => {
