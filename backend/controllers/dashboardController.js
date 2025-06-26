@@ -245,7 +245,6 @@ export const addChlorinationUser = (req, res) => {
   }
 
   try {
-    // 🔍 Get the hub_name from the hub_id
     const hub = db.prepare(`SELECT hub_name FROM chlorination_hubs WHERE hub_id = ?`).get(hub_id);
 
     if (!hub) {
@@ -257,12 +256,15 @@ export const addChlorinationUser = (req, res) => {
     const user_id = `${hub_id}USR${userNumber}`;
     const hashedPassword = bcrypt.hashSync(password, 10);
 
+    const role = 'hub_officer';
+    const module = 'chlorination';
+
     const stmt = db.prepare(`
       INSERT INTO chlorination_hub_users 
-      (user_id, username, email, hashedPassword, hub_id, hub_name, phone_number, address, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (user_id, username, email, hashedPassword, hub_id, hub_name, phone_number, address, status, role, module)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
-    stmt.run(user_id, username, email, password, hub_id, hub.hub_name, phone_number, address, status);
+    stmt.run(user_id, username, email, hashedPassword, hub_id, hub.hub_name, phone_number, address, status, role, module);
 
     return res.status(201).json({ message: 'User added successfully', user_id });
   } catch (err) {
@@ -270,6 +272,7 @@ export const addChlorinationUser = (req, res) => {
     return res.status(500).json({ message: 'Server error' });
   }
 };
+
 
 // Get all chlorination hub users
 export const getChlorinationUsers = (req, res) => {
