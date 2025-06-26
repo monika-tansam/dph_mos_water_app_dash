@@ -286,3 +286,86 @@ export const getChlorinationUsers = (req, res) => {
   }
 };
 
+export const getHubOfficerInfo = (req, res) => {
+  const { username } = req.query; // or from req.body if POST
+
+  if (!username) {
+    return res.status(400).json({ message: 'Missing username' });
+  }
+
+  try {
+    const stmt = db.prepare(`
+      SELECT hub_id, hub_name 
+      FROM chlorination_hub_users 
+      WHERE username = ? AND role = 'hub_officer'
+    `);
+    const user = stmt.get(username);
+
+    if (!user) {
+      return res.status(404).json({ message: 'Hub officer not found' });
+    }
+
+    res.json(user);
+  } catch (err) {
+    console.error('getHubOfficerInfo error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
+//chlorinationcreatedatacollector
+
+export const chlorinationcreatedatacollector = (req, res) => {
+  const {
+    username,
+    email,
+    password,
+    hub_id,
+    phone_number,
+    address,
+    status,
+  } = req.body;
+
+  if (!username || !email || !password || !hub_id) {
+    return res.status(400).json({ message: 'Missing required fields' });
+  }
+
+  try {
+    const createUserTransaction = db.transaction(() => {
+      const hub = db.prepare(`SELECT hub_name FROM chlorination_hubs WHERE hub_id = ?`).get(hub_id);
+      if (!hub) throw new Error("Invalid hub_id");
+
+      const count = db.prepare(`SELECT COUNT(*) AS total FROM chlorination_hub_users WHERE hub_id = ?`).get(hub_id);
+      const userNumber = String(count.total + 1).padStart(3, '0');
+      const user_id = `${hub_id}USR${userNumber}`;
+      const hashedPassword = bcrypt.hashSync(password, 10);
+
+      db.prepare(`
+        INSERT INTO chlorination_hub_users 
+        (user_id, username, email, hashedPassword, hub_id, hub_name, phone_number, address, status, role, module)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        user_id,
+        username,
+        email,
+        hashedPassword,
+        hub_id,
+        hub.hub_name,
+        phone_number,
+        address,
+        status,
+        'data_collector',
+        'chlorination'
+      );
+
+      return user_id;
+    });
+
+    const newUserId = createUserTransaction(); // 🔄 run the transaction
+    return res.status(201).json({ message: 'User created', user_id: newUserId });
+
+  } catch (err) {
+    console.error('chlorinationcreatedatacollector error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
