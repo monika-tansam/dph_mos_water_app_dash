@@ -285,4 +285,66 @@ export const getChlorinationUsers = (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+export const getChlorinationDataUsers = (req, res) => {
+  const { hub_id } = req.query;
 
+  try {
+    let users = [];
+
+    if (hub_id) {
+      users = db.prepare(`SELECT * FROM chlorination_data_users WHERE hub_id = ?`).all(hub_id);
+    } else {
+      users = db.prepare(`SELECT * FROM chlorination_data_users`).all();
+    }
+
+    res.json(users);
+  } catch (err) {
+    console.error("getChlorinationDataUsers error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+export const addChlorinationDataUser = (req, res) => {
+  const { username, email, password, phone_number, hub_id } = req.body;
+
+  if (!username || !email || !password || !hub_id) {
+    return res.status(400).json({ message: 'Missing required fields' });
+  }
+
+  try {
+    // Get hub_name from chlorination_hubs
+    const hub = db.prepare(`SELECT hub_name FROM chlorination_hubs WHERE hub_id = ?`).get(hub_id);
+    if (!hub) {
+      return res.status(400).json({ message: 'Invalid hub_id' });
+    }
+
+    // Create 3-letter abbreviation from hub_name
+    const abbrev = hub.hub_name.toUpperCase().replace(/\s+/g, '').slice(0, 3);
+
+    // Count how many data users already exist under this hub
+    const count = db.prepare(`SELECT COUNT(*) AS total FROM chlorination_data_users WHERE hub_id = ?`).get(hub_id);
+
+    // Format the sequence number with leading zeroes (e.g., 001, 002...)
+    const userNumber = String(count.total + 1).padStart(3, '0');
+
+    // Final user_id format: HUB001CHEUSE001
+    const user_id = `${hub_id}${abbrev}USE${userNumber}`;
+
+    // Hash the password
+    const hashedPassword = bcrypt.hashSync(password, 10);
+
+    // Insert new data user
+    db.prepare(`
+      INSERT INTO chlorination_data_users
+      (user_id, username, email, hashedPassword, phone_number, hub_id, hub_name)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(user_id, username, email, hashedPassword, phone_number, hub_id, hub.hub_name);
+
+    return res.status(201).json({ message: 'Data user created successfully', user_id });
+
+  } catch (err) {
+    console.error("addChlorinationDataUser error:", err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};

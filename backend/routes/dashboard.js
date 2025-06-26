@@ -6,12 +6,10 @@ import {
   getDistrictData,
   getDistrictOfficers,
   addDataCollection,
-  createInspectionTester,
   addChlorinationHub,
   addChlorinationDistrict,
   getAllHubsWithDistricts,
-  addChlorinationUser,
-  getChlorinationUsers 
+  addChlorinationDataUser,getChlorinationDataUsers,
 } from '../controllers/dashboardController.js';
 
 
@@ -29,8 +27,14 @@ router.post('/district', addChlorinationDistrict);
 router.get('/hubs-districts', getAllHubsWithDistricts);
 
 // Chlorination user creation
-router.post('/chl-hubusers', addChlorinationUser);
-router.get('/chl-hubusers', getChlorinationUsers);
+router.post('/chl-hubusers', addChlorinationDataUser);
+router.get('/chl-hubusers', getChlorinationDataUsers);
+
+// Chlorination data users creation
+// Chlorination data users creation
+router.post('/chl-data-users', addChlorinationDataUser);     // ✅ Correct controller
+router.get('/chl-data-users', getChlorinationDataUsers);     // ✅ Correct controller
+
 
 // Chlorination prediction route
 router.get('/', (req, res) => {

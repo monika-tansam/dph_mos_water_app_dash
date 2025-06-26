@@ -70,6 +70,16 @@ CREATE TABLE IF NOT EXISTS chlorination_hub_users (
     FOREIGN KEY (hub_id) REFERENCES chlorination_hubs(hub_id)
   );
 
+  CREATE TABLE IF NOT EXISTS chlorination_data_users (
+    user_id TEXT PRIMARY KEY,
+    username TEXT,
+    email TEXT,
+    hashedPassword TEXT,
+    phone_number TEXT,
+    hub_id TEXT,
+    hub_name TEXT,
+    FOREIGN KEY (hub_id) REFERENCES chlorination_hubs(hub_id)
+  );
 
 `);
 
