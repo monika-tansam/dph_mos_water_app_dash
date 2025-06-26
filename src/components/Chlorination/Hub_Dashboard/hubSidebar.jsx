@@ -24,7 +24,7 @@ const HubSidebar = ({ isOpen, closeSidebar }) => {
 
   const navItems = [
     { text: "Home", icon: <HomeIcon />, href: "/hub-dashboard" },
-    { text: "User", icon: <DashboardIcon />, href: "/hub-user" },
+    { text: "add_user", icon: <DashboardIcon />, href: "/add_user" },
     { text: "Data Collection", icon: <BarChartIcon />, href: "/hub-data" },
   ];
 

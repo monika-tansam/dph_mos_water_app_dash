@@ -44,7 +44,9 @@ CREATE TABLE IF NOT EXISTS chlorination_hub_users (
   hub_name TEXT,           
   phone_number TEXT,
   address TEXT,
-  status TEXT
+  status TEXT,
+  role TEXT,
+  module TEXT
 );
 
 

@@ -38,6 +38,8 @@ const ChlUserStats = () => {
     phone_number: "",
     address: "",
     status: "Active",
+    role: "hub_officer",
+    module: "chlorination", 
   });
 
   // Fetch users and hubs on load
@@ -127,6 +129,8 @@ const ChlUserStats = () => {
         phone_number: "",
         address: "",
         status: "Active",
+        role: "hub_officer",
+        module: "chlorination", 
       });
       setPasswordError("");
       setOpen(false);
@@ -175,6 +179,8 @@ const ChlUserStats = () => {
             { field: "phone_number", headerName: "Phone", width: 130 },
             { field: "address", headerName: "Address", width: 200 },
             { field: "status", headerName: "Status", width: 100 },
+            { field: "role", headerName: "Role", width: 120 },
+            { field: "module", headerName: "Module", width: 140 },
           ]}
           getRowId={(row) => row.user_id}
           pageSize={5}
@@ -243,6 +249,8 @@ const ChlUserStats = () => {
                     fullWidth
                   />
                   <TextField label="Address" name="address" value={form.address} onChange={handleChange} fullWidth />
+                  <TextField label="Role" name="role" value={form.role} onChange={handleChange} fullWidth />
+                  <TextField label="Module" name="module" value={form.module} onChange={handleChange} fullWidth />
                 </>
               )}
             </Stack>
