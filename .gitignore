@@ -32,3 +32,4 @@ dist-ssr
 *.sql
 *.sqlite-wal
 *.sqlite-shm
+backend/data.db

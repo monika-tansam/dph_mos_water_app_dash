@@ -1,14 +1,36 @@
 // In your backend/routes/dashboardRoutes.js or similar
 import express from 'express';
 import db from '../utils/db.js';
-import dashboardController from '../controllers/dashboardController.js';
+import {
+  getDashboardData,
+  getDistrictData,
+  getDistrictOfficers,
+  addDataCollection,
+  createInspectionTester,
+  addChlorinationHub,
+  addChlorinationDistrict,
+  getAllHubsWithDistricts,
+  addChlorinationUser,
+  getChlorinationUsers 
+} from '../controllers/dashboardController.js';
+
+
 
 const router = express.Router();
 
-router.post('/', dashboardController.getDashboardData);
-router.get('/district', dashboardController.getDistrictData);
-router.get('/district-officers', dashboardController.getDistrictOfficers);
-router.post('/datacollection', dashboardController.addDataCollection);
+router.post('/', getDashboardData);
+router.get('/district', getDistrictData);
+router.get('/district-officers', getDistrictOfficers);
+router.post('/datacollection', addDataCollection);
+
+// Chlorination master
+router.post('/hub', addChlorinationHub);
+router.post('/district', addChlorinationDistrict);
+router.get('/hubs-districts', getAllHubsWithDistricts);
+
+// Chlorination user creation
+router.post('/chl-hubusers', addChlorinationUser);
+router.get('/chl-hubusers', getChlorinationUsers);
 
 // Chlorination prediction route
 router.get('/', (req, res) => {
