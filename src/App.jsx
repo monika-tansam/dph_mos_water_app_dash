@@ -14,6 +14,8 @@ import HubDistrictMaster from './components/Chlorination/Chl_Dashboard/Chlorinat
 import HubDashboard from './components/Chlorination/Hub_Dashboard/hubDashboard';
 import HubStateData from './components/Chlorination/Hub_Dashboard/hubDataCollection';
 import HubUser from './components/Chlorination/Hub_Dashboard/hubUser';
+import HubOfficerAdd from './components/Chlorination/Hub_Dashboard/hub_officer_add';
+
 function App() {
   return (
     <Router>
@@ -34,6 +36,7 @@ function App() {
           <Route path="/hub-dashboard" element={<HubDashboard />} />
           <Route path="/hub-data" element={<HubStateData />} />
           <Route path="/hub-user" element={<HubUser />} />
+          <Route path="/add_user" element={< HubOfficerAdd/>} />
       </Routes>
       
     </Router>
