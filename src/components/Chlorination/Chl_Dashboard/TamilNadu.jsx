@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -30,26 +30,11 @@ const pinLocations = [
   { lat: 8.7378, lng: 77.7081, label: "Tirunelveli", code: "hub004" },
 ];
 
-const chennaiHubDistricts = [
-  "Chennai", "Tirupathur", "Viluppuram", "Kallakurichi", "Chengalpattu", "Vellore", "Ranipet",
-  "Thiruvallur", "Tiruvannamalai", "Kancheepuram", "Cuddalore"
-];
-const coimbatoreHubDistricts = ["Coimbatore", "Erode", "Tiruppur", "Nilgiris", "Salem", "Namakkal", "Karur"];
-const trichyHubDistricts = ["Tiruchirappalli", "Perambalur", "Ariyalur", "Thanjavur", "Thiruvarur", "Nagapattinam", "Pudukkottai"];
-const tirunelveliHubDistricts = ["Tirunelveli", "Thoothukkudi", "Tenkasi", "Kanyakumari", "Virudhunagar", "Ramanathapuram"];
-
-const hubColors = {
-  Chennai: "#4CAF50",
-  Coimbatore: "#FF8C00",
-  Tiruchirapalli: "#DC143C",
-  Tirunelveli: "#BA55D3",
-};
-
 const hubDistrictMap = {
-  hub001: chennaiHubDistricts,
-  hub002: coimbatoreHubDistricts,
-  hub003: trichyHubDistricts,
-  hub004: tirunelveliHubDistricts,
+  hub001: ["Chennai", "Tirupathur", "Viluppuram", "Kallakurichi", "Chengalpattu", "Vellore", "Ranipet", "Thiruvallur", "Tiruvannamalai", "Kancheepuram", "Cuddalore"],
+  hub002: ["Coimbatore", "Erode", "Tiruppur", "Nilgiris", "Salem", "Namakkal", "Karur"],
+  hub003: ["Tiruchirappalli", "Perambalur", "Ariyalur", "Thanjavur", "Thiruvarur", "Nagapattinam", "Pudukkottai"],
+  hub004: ["Tirunelveli", "Thoothukkudi", "Tenkasi", "Kanyakumari", "Virudhunagar", "Ramanathapuram"]
 };
 
 const districtHubMap = Object.entries(hubDistrictMap).reduce((acc, [hubCode, districts]) => {
@@ -63,6 +48,20 @@ const districtHubMap = Object.entries(hubDistrictMap).reduce((acc, [hubCode, dis
 const getDistrictsByHub = (hubName) => {
   const match = pinLocations.find(h => h.label === hubName);
   return match ? hubDistrictMap[match.code] : [];
+};
+
+const blockColorMap = {
+  "Corporation": "#1f77b4",
+  "Municipality": "#2ca02c",
+  "Town Panchayat": "#ff7f0e",
+  "Government Hospital": "#d62728",
+  "Railway Station": "#9467bd",
+  "Approved Home": "#8c564b",
+  "Prison": "#e377c2",
+  "Government Institution": "#7f7f7f",
+  "Educational Institution": "#bcbd22",
+  "PWD (Poondi)": "#17becf",
+  "Temple (Festival Camp)": "#ffbb78"
 };
 
 const FitToTN = () => {
@@ -86,7 +85,7 @@ const ZoomControls = () => {
   const zoomOut = () => {
     const z = Math.max(zoom - 1, map.getMinZoom());
     map.setZoom(z);
-    setZoom(z); 
+    setZoom(z);
   };
 
   return (
@@ -126,32 +125,80 @@ const DistrictZoomHandler = ({ selectedDistrict, geoData }) => {
   return null;
 };
 
-const blockColorMap = {
-  "Corporation": "#1f77b4",
-  "Municipality": "#2ca02c",
-  "Town Panchayat": "#ff7f0e",
-  "Government Hospital": "#d62728",
-  "Railway Station": "#9467bd",
-  "Approved Home": "#8c564b",
-  "Prison": "#e377c2",
-  "Government Institution": "#7f7f7f",
-  "Educational Institution": "#bcbd22",
-  "PWD (Poondi)": "#17becf",
-  "Temple (Festival Camp)": "#ffbb78"
+const BlockZoomHandler = ({ selectedBlockName, groupedBlocks }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (!selectedBlockName || !groupedBlocks) return;
+    for (const blocks of Object.values(groupedBlocks)) {
+      const block = blocks.find(b => b.name === selectedBlockName);
+      if (block) {
+        map.flyTo([block.lat, block.lng], 13, { duration: 1.5 });
+        break;
+      }
+    }
+  }, [selectedBlockName, groupedBlocks, map]);
+  return null;
 };
 
 const TamilNaduMap = () => {
   const [geoData, setGeoData] = useState(null);
+  const [blocksData, setBlocksData] = useState(null);
   const [selectedHub, setSelectedHub] = useState("");
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [filterEnabled, setFilterEnabled] = useState(false);
+  const [selectedBlockName, setSelectedBlockName] = useState("");
+  const mapRef = useRef();
 
   useEffect(() => {
     fetch("/maps/tamil-nadu.geojson")
       .then(res => res.json())
-      .then(setGeoData)
-      .catch(err => console.error("GeoJSON load error:", err));
+      .then(setGeoData);
   }, []);
+
+  useEffect(() => {
+    setSelectedDistrict("");
+    setSelectedBlockName("");
+
+    const hubFileMap = {
+      hub001: "/maps/chennaihub_blocks.json",
+      hub002: "/maps/coimbatorehub.json",
+      hub003: "/maps/thiruchirapalli.json",
+      hub004: "/maps/tirunelvelihub.json",
+    };
+    const file = hubFileMap[pinLocations.find(h => h.label === selectedHub)?.code];
+    if (file) {
+      fetch(file)
+        .then(res => res.json())
+        .then(setBlocksData)
+        .catch(err => {
+          console.error(`Failed to load blocks data for ${selectedHub}:`, err);
+          setBlocksData(null);
+        });
+    }
+  }, [selectedHub]);
+
+  useEffect(() => {
+    setSelectedBlockName("");
+  }, [selectedDistrict]);
+
+  const groupedBlocks = useMemo(() => {
+    if (!blocksData || !selectedDistrict) return null;
+    let foundBlock = null;
+    Object.values(blocksData).forEach(hub => {
+      Object.values(hub).forEach(district => {
+        if (district.district_name?.toLowerCase().trim() === selectedDistrict.toLowerCase().trim()) {
+          foundBlock = district.blocks;
+        }
+      });
+    });
+    if (!foundBlock) return null;
+    const groups = {};
+    foundBlock.forEach(block => {
+      if (!groups[block.type]) groups[block.type] = [];
+      groups[block.type].push(block);
+    });
+    return groups;
+  }, [blocksData, selectedDistrict]);
 
   const styleDistrict = (feature) => {
     const name = feature.properties.district;
@@ -163,9 +210,7 @@ const TamilNaduMap = () => {
       return { fillOpacity: 0, weight: 0, color: "transparent" };
     }
 
-    const fillColor = isSelected
-      ? "#ffd54f"
-      : (hubInfo ? hubColors[pinLocations.find(h => h.code === hubInfo.hub)?.label] : "#FFCC00");
+    const fillColor = isSelected ? "#ffd54f" : (hubInfo ? "#A0C4FF" : "#FFCC00");
 
     return {
       fillColor,
@@ -177,60 +222,39 @@ const TamilNaduMap = () => {
 
   return (
     <div style={{ height: 400, position: "relative" }}>
-        <div style={{
-  position: "absolute",
-  top: 10,
-  right: 10,
-  zIndex: 1000,
-  background: "#fff",
-  padding: "12px 14px",
-  borderRadius: "8px",
-  boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
-  fontFamily: "Nunito, sans-serif",
-  minWidth: "220px"
-}}>
-  <label style={{ display: "flex", alignItems: "center", marginBottom: "10px", fontSize: "14px", fontWeight: "500", color: "#333" }}>
-    <input
-      type="checkbox"
-      checked={filterEnabled}
-      onChange={(e) => setFilterEnabled(e.target.checked)}
-      style={{ marginRight: "8px" }}
-    />
-    Filter districts
-  </label>
-
-  <select
-    onChange={(e) => setSelectedHub(e.target.value)}
-    value={selectedHub}
-    style={{ ...selectStyle, marginBottom: 10 }}
-  >
-    <option value="">Select Hub</option>
-    {pinLocations.map((h, i) => (
-      <option key={i} value={h.label}>{h.label}</option>
-    ))}
-  </select>
-
-  {selectedHub && (
-    <select
-      value={selectedDistrict}
-      onChange={(e) => setSelectedDistrict(e.target.value)}
-      style={selectStyle}
-    >
-      <option value="">Select District</option>
-      {getDistrictsByHub(selectedHub).map((d, i) => (
-        <option key={i} value={d}>{d}</option>
-      ))}
-    </select>
-  )}
-</div>
-
-
-      <MapContainer center={[11, 78]} zoom={7} style={{ height: "100%" }} zoomControl={false}>
+      <div style={{ position: "absolute", top: 10, right: 10, zIndex: 1000, background: "#fff", padding: "12px 14px", borderRadius: "8px", boxShadow: "0 2px 6px rgba(0,0,0,0.2)", minWidth: "220px" }}>
+        <label style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
+          <input type="checkbox" checked={filterEnabled} onChange={(e) => setFilterEnabled(e.target.checked)} style={{ marginRight: "8px" }} />
+          Filter districts
+        </label>
+        <select value={selectedHub} onChange={(e) => setSelectedHub(e.target.value)} style={selectStyle}>
+          <option value="">Select Hub</option>
+          {pinLocations.map((h, i) => <option key={i} value={h.label}>{h.label}</option>)}
+        </select>
+        {selectedHub && (
+          <select value={selectedDistrict} onChange={(e) => setSelectedDistrict(e.target.value)} style={selectStyle}>
+            <option value="">Select District</option>
+            {getDistrictsByHub(selectedHub).map((d, i) => <option key={i} value={d}>{d}</option>)}
+          </select>
+        )}
+        {selectedDistrict && groupedBlocks && (
+          <select value={selectedBlockName} onChange={(e) => setSelectedBlockName(e.target.value)} style={selectStyle}>
+            <option value="">Show All Blocks</option>
+            {Object.entries(groupedBlocks).flatMap(([type, blocks]) =>
+              blocks.map((block, i) => (
+                <option key={`${type}-${i}`} value={block.name}>{block.name}</option>
+              ))
+            )}
+          </select>
+        )}
+      </div>
+      <MapContainer center={[11, 78]} zoom={7} style={{ height: "100%" }} zoomControl={false} whenCreated={(mapInstance) => { mapRef.current = mapInstance }}>
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <FitToTN />
         <ZoomControls />
         {selectedHub && <HubZoomHandler selectedHub={selectedHub} />}
         {selectedDistrict && <DistrictZoomHandler selectedDistrict={selectedDistrict} geoData={geoData} />}
+        {selectedBlockName && groupedBlocks && <BlockZoomHandler selectedBlockName={selectedBlockName} groupedBlocks={groupedBlocks} />}
 
         {geoData && (
           <GeoJSON
@@ -243,21 +267,14 @@ const TamilNaduMap = () => {
               layer.on('mouseover', function (e) {
                 const lat = e.latlng.lat.toFixed(4);
                 const lng = e.latlng.lng.toFixed(4);
-                const popupContent = `
-                  <div style="font-family: Nunito, sans-serif; border-radius: 6px; padding: 6px; background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.2); min-width: 140px;">
-                    <div style="font-size: 13px; font-weight: bold; margin-bottom: 2px; color: #2c3e50;">${name}</div>
-                    <div style="font-size: 12px; color: #555;">
-                      <strong>Code:</strong> ${code}<br/>
-                      <strong>Latitude:</strong> ${lat}<br/>
-                      <strong>Longitude:</strong> ${lng}
-                    </div>
+                layer.bindPopup(`
+                  <div style="font-family: Nunito, sans-serif; padding: 6px;">
+                    <div style="font-size: 13px; font-weight: bold;">${name}</div>
+                    <div style="font-size: 12px;"><strong>Code:</strong> ${code}<br/><strong>Lat:</strong> ${lat}<br/><strong>Lng:</strong> ${lng}</div>
                   </div>
-                `;
-                layer.bindPopup(popupContent).openPopup(e.latlng);
+                `).openPopup(e.latlng);
               });
-              layer.on('mouseout', function () {
-                layer.closePopup();
-              });
+              layer.on('mouseout', () => layer.closePopup());
             }}
           />
         )}
@@ -265,21 +282,9 @@ const TamilNaduMap = () => {
         {pinLocations.map((loc, i) => (
           <Marker key={i} position={[loc.lat, loc.lng]} icon={customIcon}>
             <Popup>
-              <div style={{
-                fontFamily: "Nunito, sans-serif",
-                borderRadius: "8px",
-                padding: "10px",
-                background: "white",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-                minWidth: "180px"
-              }}>
-                <div style={{ fontSize: "16px", fontWeight: "bold", color: "#2c3e50", marginBottom: 4 }}>
-                  {loc.label} Hub
-                </div>
-                <div style={{ fontSize: "14px", color: "#555" }}>
-                  <strong>Latitude:</strong> {loc.lat.toFixed(4)}<br />
-                  <strong>Longitude:</strong> {loc.lng.toFixed(4)}
-                </div>
+              <div style={{ fontFamily: "Nunito, sans-serif" }}>
+                <div style={{ fontWeight: "bold" }}>{loc.label} Hub</div>
+                <div>Lat: {loc.lat.toFixed(4)}<br />Lng: {loc.lng.toFixed(4)}</div>
               </div>
             </Popup>
             {selectedHub === loc.label && (
@@ -288,7 +293,40 @@ const TamilNaduMap = () => {
           </Marker>
         ))}
 
-       
+          {selectedBlockName && groupedBlocks && (() => {
+          for (const blocks of Object.values(groupedBlocks)) {
+            const block = blocks.find(b => b.name === selectedBlockName);
+            if (block && block.lat != null && block.lng != null) {
+              return (
+                <Circle
+                  center={[block.lat, block.lng]}
+                  radius={1000}
+                  pathOptions={{ color: "#0000FF", weight: 2, fillColor: "#87CEFA", fillOpacity: 0.4 }}
+                />
+              );
+            }
+          }
+          return null;
+        })()}
+
+
+        {groupedBlocks && Object.entries(groupedBlocks).flatMap(([type, markers]) =>
+          markers.filter(block => !selectedBlockName || block.name === selectedBlockName)
+            .map((block, idx) => (
+              <Marker
+                key={`${block.name}-${idx}`}
+                position={[block.lat, block.lng]}
+                icon={L.divIcon({
+                  className: "custom-block-icon",
+                  html: `<div style="background: ${blockColorMap[type] || "#999"}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">${block.name}</div>`
+                })}
+              >
+                <Popup>
+                  <div><strong>{block.name}</strong><br /><span>Type: {type}</span></div>
+                </Popup>
+              </Marker>
+            ))
+        )}
       </MapContainer>
     </div>
   );
@@ -299,7 +337,8 @@ const selectStyle = {
   borderRadius: 6,
   border: "1px solid #ccc",
   fontFamily: "Nunito, sans-serif",
-  width: "100%"
+  width: "100%",
+  marginBottom: "10px"
 };
 
 export default TamilNaduMap;

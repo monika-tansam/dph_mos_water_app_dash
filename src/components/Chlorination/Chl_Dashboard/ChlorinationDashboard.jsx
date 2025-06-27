@@ -4,10 +4,10 @@ import TamilNaduMap from "./TamilNadu";
 
 
  const dataBoxes = [
-  { title: "Chennai Hub", districtCount: 11, hubNumber: 51 },
-  { title: "Coimbatore Hub", districtCount: 8, hubNumber: 30 },
-  { title: "Thiruchirapalli Hub", districtCount: 10, hubNumber: 20 },
-  { title: "Tirunelveli Hub", districtCount: 9, hubNumber: 48 },
+  { title: "Chennai", districtCount: 11 },
+  { title: "Coimbatore", districtCount: 8 },
+  { title: "Thiruchirapalli", districtCount: 10 },
+  { title: "Tirunelveli", districtCount: 9 },
 ];
 
 const ChlorinationDashboard = () => {
@@ -35,12 +35,12 @@ const ChlorinationDashboard = () => {
   return (
     <DashboardLayout>
       <div className="row mb-4">
-      {dataBoxes.map(({ title, districtCount, hubNumber }, idx) => (
+      {dataBoxes.map(({ title, districtCount }, idx) => (
           <div key={idx} className="col-12 col-sm-6 col-md-3 mb-3 d-flex">
             <div
               className="card text-center w-100"
               style={{
-                height: "148px",
+                height: "148px", 
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "center",
@@ -65,7 +65,6 @@ const ChlorinationDashboard = () => {
                 </h5>
               <div className="card-text" style={{ color: "#007556", fontWeight: 600 }}>
                <div>Districts: {districtCount}</div>
-               <div>Hubs: {hubNumber}</div>
               </div>
               </div>
             </div>
