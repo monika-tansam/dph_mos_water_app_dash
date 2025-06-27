@@ -1,5 +1,7 @@
 // loginController.js (SQLite version)
 import db from '../utils/db.js';
+import bcrypt from 'bcryptjs';
+
 
 const handleLogin = (req, res) => {
   const { username, password } = req.body;
@@ -38,21 +40,13 @@ const handleLogin = (req, res) => {
       module: 'chlorination',
       hub_id: 'HUB001',
       status: 'active'
-    },
-    {
-      user_id: 'HUB999',
-      username: 'hubofficer@example.com',
-      password: 'Chub@123',
-      role: 'hub_officer',
-      module: 'chlorination',
-      hub_id: 'HUB002',
-      status: 'active'
     }
   ];
 
   // 🔍 Check hardcoded credentials first
   const matched = hardcodedUsers.find(
-    user => user.username === username && user.password === password
+    // user => user.username === username && user.password === password
+     user => (user.username === username || user.user_id === username) && user.password === password
   );
 
   if (matched) {
@@ -92,25 +86,25 @@ const handleLogin = (req, res) => {
       });
     }
 
-    // ✅ Try DB: Chlorination User
-    const chlUser = db.prepare(`
-      SELECT * FROM chlorination_users
-      WHERE user_id = ? AND password = ?
-    `).get(username, password);
+const chlUser = db.prepare(`
+  SELECT * FROM chlorination_hub_users
+  WHERE username = ? OR user_id = ?
+`).get(username, username);
 
-    if (chlUser) {
-      return res.status(200).json({
-        message: 'Chlorination login successful',
-        user: {
-          user_id: chlUser.user_id,
-          username: chlUser.username,
-          role: chlUser.role,
-          module: 'chlorination',
-          hub_id: chlUser.hub_id,
-          status: chlUser.status
-        }
-      });
+
+if (chlUser && bcrypt.compareSync(password, chlUser.hashedPassword || chlUser.password)) {
+  return res.status(200).json({
+    message: `${chlUser.module} ${chlUser.role} login successful`,
+    user: {
+      user_id: chlUser.user_id,
+      username: chlUser.username,
+      role: chlUser.role,
+      module: chlUser.module,
+      hub_id: chlUser.hub_id,
+      status: chlUser.status
     }
+  });
+}
 
     // ❌ Invalid credentials
     res.status(401).json({ message: 'Invalid credentials' });
