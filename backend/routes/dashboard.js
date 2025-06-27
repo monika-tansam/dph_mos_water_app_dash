@@ -1,10 +1,10 @@
 // In your backend/routes/dashboardRoutes.js or similar
 import express from 'express';
 import db from '../utils/db.js';
-import {getDashboardData,getDistrictData,getDistrictOfficers,addDataCollection,addChlorinationHub,addChlorinationDistrict,
+import {getDashboardData,addDistrictOfficer,getDistrictData,getDistrictOfficers,addDataCollection,addChlorinationHub,addChlorinationDistrict,
   getAllHubsWithDistricts,
-  addChlorinationUser,
-  getChlorinationUsers,addChlorinationDataCollector,getChlorinationDataCollectors
+  addChlorinationUser,getOfficerCount,
+  getChlorinationUsers,addChlorinationDataCollector,getChlorinationDataCollectors,addMosquitoDistrict, getMosquitoDistricts
 } from '../controllers/dashboardController.js';
 
 const router = express.Router();
@@ -12,7 +12,12 @@ const router = express.Router();
 router.post('/', getDashboardData);
 router.get('/district', getDistrictData);
 router.get('/district-officers', getDistrictOfficers);
+router.post('/add-district-officer', addDistrictOfficer);
 router.post('/datacollection', addDataCollection);
+router.post('/mos-district', addMosquitoDistrict);
+router.get('/mos-district', getMosquitoDistricts);
+// In your routes setup (likely in routes/login.js or similar)
+router.get('/officer-count', getOfficerCount);
 
 // Chlorination master
 router.post('/hub', addChlorinationHub);
