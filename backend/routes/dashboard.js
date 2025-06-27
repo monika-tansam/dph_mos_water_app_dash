@@ -1,20 +1,11 @@
 // In your backend/routes/dashboardRoutes.js or similar
 import express from 'express';
 import db from '../utils/db.js';
-import {
-  getDashboardData,
-  getDistrictData,
-  getDistrictOfficers,
-  addDataCollection,
-  createInspectionTester,
-  addChlorinationHub,
-  addChlorinationDistrict,
+import {getDashboardData,getDistrictData,getDistrictOfficers,addDataCollection,addChlorinationHub,addChlorinationDistrict,
   getAllHubsWithDistricts,
   addChlorinationUser,
-  getChlorinationUsers 
+  getChlorinationUsers,addChlorinationDataCollector,getChlorinationDataCollectors
 } from '../controllers/dashboardController.js';
-
-
 
 const router = express.Router();
 
@@ -32,13 +23,15 @@ router.get('/hubs-districts', getAllHubsWithDistricts);
 router.post('/chl-hubusers', addChlorinationUser);
 router.get('/chl-hubusers', getChlorinationUsers);
 
+// Chlorination inspection tester creation
+router.post('/add-chl-datacollector', addChlorinationDataCollector)
+router.get('/chl-datacollector', getChlorinationDataCollectors)
 // Chlorination prediction route
 router.get('/', (req, res) => {
   const { user_id, role, hub_id } = req.query;
 
   try {
     let data = [];
-
     if (role === 'admin') {
       data = db.prepare(`SELECT * FROM datacollection`).all();
     } else if (role === 'hub_officer') {
@@ -51,9 +44,7 @@ router.get('/', (req, res) => {
     } else {
       return res.status(403).json({ message: 'Unauthorized access' });
     }
-
     res.json({ data });
-
   } catch (err) {
     console.error('Dashboard fetch error:', err);
     res.status(500).json({ message: 'Server error' });

@@ -54,7 +54,12 @@ function LoginForm() {
 
       const data = await response.json();
 
-      if (response.ok) {
+      if (response.ok && data.user && data.user.username) {
+
+          localStorage.setItem("loggedInUsername", data.user.username);
+
+  // Optional: store full user object
+  localStorage.setItem("loggedInUser", JSON.stringify(data.user));
         toast.success('Login successful!');
 
         setTimeout(() => {
