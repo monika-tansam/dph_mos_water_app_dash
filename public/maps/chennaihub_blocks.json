@@ -1,5 +1,28 @@
 {
   "hub001": {
+     "CHENN": {
+      "district_name": "Chennai",
+      "blocks": [
+        {
+          "name": "Chennai CORPN",
+          "type": "Corporation",
+          "lat": 13.0827,
+          "lng": 80.2707
+        },
+        {
+          "name": "Kilpauk GH",
+          "type": "Government Hospital",
+          "lat": 13.082,
+          "lng": 80.25
+        },
+        {
+          "name": "Central Railway",
+          "type": "Railway Station",
+          "lat": 13.08,
+          "lng": 80.27
+        }
+      ]
+    },
     "TIRUP": {
       "district_name": "Tirupathur",
       "blocks": [
@@ -174,6 +197,7 @@
         { "name": "Virudachalam MPTY", "type": "Municipality", "lat": 11.50560, "lng": 79.49050 },
         { "name": "Viruddachalam", "type": "Hospital", "lat": 11.50560, "lng": 79.49050 }
       ]
-    }
+        }
   }
+  
 }
