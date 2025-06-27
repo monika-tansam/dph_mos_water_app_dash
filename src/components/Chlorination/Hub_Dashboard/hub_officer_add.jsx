@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import DashboardLayout from "./DashboardLayout";
 import {
   Card,
@@ -12,10 +12,12 @@ import {
   DialogActions,
   TextField,
 } from "@mui/material";
+import { DataGrid } from "@mui/x-data-grid";
 
 export default function HubOfficerAdd() {
   const [user, setUser] = useState(null);
   const [open, setOpen] = useState(false);
+  const [collectors, setCollectors] = useState([]);
   const [newUser, setNewUser] = useState({
     user_id: "",
     username: "",
@@ -24,22 +26,7 @@ export default function HubOfficerAdd() {
     password: "",
   });
 
-  const handleOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-    setNewUser({
-      user_id: "",
-      username: "",
-      email: "",
-      phone: "",
-      password: "",
-    });
-  };
-
-  // Fetch logged-in hub officer
+  // Fetch logged-in hub officer details
   useEffect(() => {
     const fetchLoggedInUser = async () => {
       try {
@@ -59,17 +46,41 @@ export default function HubOfficerAdd() {
     fetchLoggedInUser();
   }, []);
 
-  // Auto-generate user_id when username is typed
-  useEffect(() => {
-    if (user && newUser.username) {
-      const prefix = user.hub_name?.substring(0, 3).toUpperCase() || "XXX";
-      const sequence = Math.floor(Math.random() * 900 + 100); // fallback random 3-digit
-      const userId = `${user.hub_id}${prefix}USE${sequence}`;
-      setNewUser((prev) => ({ ...prev, user_id: userId }));
+  // Fetch collectors list
+  const fetchCollectors = useCallback(async () => {
+    try {
+      const response = await fetch("http://localhost:3000/dashboard/chl-datacollector");
+      const data = await response.json();
+      setCollectors(data);
+    } catch (err) {
+      console.error("Error fetching collectors:", err);
     }
-  }, [newUser.username, user]);
+  }, []);
 
-  // Handle input changes
+  // Fetch collectors when user is loaded
+  useEffect(() => {
+    if (user) {
+      fetchCollectors();
+    }
+  }, [user, fetchCollectors]);
+
+  // Handle dialog open/close
+  const handleOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setNewUser({
+      user_id: "",
+      username: "",
+      email: "",
+      phone: "",
+      password: "",
+    });
+  };
+
+  // Handle form input changes
   const handleChange = (e) => {
     setNewUser({ ...newUser, [e.target.name]: e.target.value });
   };
@@ -98,6 +109,8 @@ export default function HubOfficerAdd() {
 
       if (res.ok) {
         alert(`User added successfully with ID: ${result.user_id}`);
+        setNewUser((prev) => ({ ...prev, user_id: result.user_id }));
+        await fetchCollectors(); // Refresh DataGrid
         handleClose();
       } else {
         alert(result.message || "Failed to add user");
@@ -131,6 +144,27 @@ export default function HubOfficerAdd() {
         </Card>
       )}
 
+      {/* DataGrid Display */}
+      <Box sx={{ mt: 4, height: 400 }}>
+        <Typography variant="h6" gutterBottom>
+          Data Collection Users
+        </Typography>
+        <DataGrid
+          rows={collectors.map((c, i) => ({ id: i + 1, ...c }))}
+          columns={[
+            { field: "user_id", headerName: "User ID", flex: 1 },
+            { field: "username", headerName: "Username", flex: 1 },
+            { field: "email", headerName: "Email", flex: 1 },
+            { field: "phone_number", headerName: "Phone", flex: 1 },
+            { field: "hub_id", headerName: "Hub ID", flex: 1 },
+            { field: "hub_name", headerName: "Hub Name", flex: 1 },
+          ]}
+          pageSize={5}
+          rowsPerPageOptions={[5]}
+          disableSelectionOnClick
+        />
+      </Box>
+
       {/* Add User Dialog */}
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
         <DialogTitle>Add Data Collection User</DialogTitle>
@@ -143,10 +177,11 @@ export default function HubOfficerAdd() {
           <TextField
             fullWidth
             margin="dense"
-            label="User ID"
+            label="User ID (auto-generated)"
             name="user_id"
             value={newUser.user_id}
             InputProps={{ readOnly: true }}
+            placeholder="Will be shown after saving"
           />
           <TextField
             fullWidth

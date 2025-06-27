@@ -291,7 +291,6 @@ export const addChlorinationDataCollector = (req, res) => {
     password,
     hub_id,
     phone_number,
-    address
   } = req.body;
 
   // Basic validation
@@ -305,9 +304,6 @@ export const addChlorinationDataCollector = (req, res) => {
     if (!hub) {
       return res.status(400).json({ message: 'Invalid hub_id' });
     }
-
- // Example: CHE
-    
     // ✅ Count existing users under same hub
     const count = db.prepare(`
       SELECT COUNT(*) AS total 
@@ -315,19 +311,15 @@ export const addChlorinationDataCollector = (req, res) => {
       WHERE hub_id = ?
     `).get(hub_id);
 
-const hubPrefix = hub.hub_name.substring(0, 3).toUpperCase();
-const sequence = String(count.total + 1).padStart(3, '0');
-const user_id = `${hub_id}${hubPrefix}USE${sequence}`;
-     // → HUB002CHEUSE001
-
-    // ✅ Hash password
+    const hubPrefix = hub.hub_name.substring(0, 3).toUpperCase();
+    const sequence = String(count.total + 1).padStart(3, '0');
+    const user_id = `${hub_id}${hubPrefix}USE${sequence}`;
     const hashedPassword = bcrypt.hashSync(password, 10);
-
     // ✅ Insert user
     const stmt = db.prepare(`
       INSERT INTO chlorination_data_collectors 
-      (user_id, username, email, hashedPassword, hub_id, hub_name, phone_number, address, status, role, module)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (user_id, username, email, hashedPassword, hub_id, hub_name, phone_number)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `);
 
     stmt.run(
@@ -337,16 +329,23 @@ const user_id = `${hub_id}${hubPrefix}USE${sequence}`;
       hashedPassword,
       hub_id,
       hub.hub_name,
-      phone_number,
-      address || '',
-      status,
-      role,
-      module
+      phone_number
     );
 
     return res.status(201).json({ message: 'Data collector added successfully', user_id });
   } catch (err) {
     console.error('addChlorinationDataCollector error:', err);
     return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const getChlorinationDataCollectors = (req, res) => {
+  try {
+    const stmt = db.prepare(`SELECT * FROM chlorination_data_collectors`);
+    const collectors = stmt.all();
+    res.json(collectors);
+  } catch (err) {
+    console.error("getChlorinationDataCollectors error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
