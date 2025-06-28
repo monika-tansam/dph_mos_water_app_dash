@@ -35,26 +35,112 @@ export const getDistrictData = (req, res) => {
   }
 };
 
+export const addDistrictOfficer = async (req, res) => {
+  const {
+    username,
+    password,
+    district_code,
+    phone_number,
+    status = "Active"
+  } = req.body;
+
+  console.log("Incoming addDistrictOfficer request body:", req.body);
+
+  // Basic validation
+  if (!username || !password || !district_code) {
+    return res.status(400).json({
+      message: 'Username, password, and district code are required'
+    });
+  }
+
+  try {
+    // Get district info
+    const district = db.prepare(`
+      SELECT district_name FROM mosquito_district_master 
+      WHERE district_code = ?
+    `).get(district_code);
+console.log("Matching district in DB:", district); 
+    if (!district) {
+      return res.status(400).json({ 
+        message: 'Invalid district code',
+        availableDistricts: db.prepare('SELECT district_code, district_name FROM mosquito_district_master').all()
+      });
+    }
+
+    // Generate user_id (first 5 chars of district_code + sequential number)
+    const count = db.prepare(`
+      SELECT COUNT(*) as total FROM district_officer_table
+      WHERE district_code = ?
+    `).get(district_code);
+
+    const prefix = district_code.substring(0, 5).toUpperCase();
+    const user_id = `${prefix}${String(count.total + 1).padStart(3, '0')}`;
+
+    // Validate phone number
+    const cleanedPhone = phone_number ? phone_number.replace(/\D/g, '') : null;
+    if (cleanedPhone && cleanedPhone.length < 10) {
+      return res.status(400).json({ message: 'Phone number must be at least 10 digits' });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Check for existing username
+    const existing = db.prepare(`
+      SELECT username FROM district_officer_table 
+      WHERE username = ?
+    `).get(username);
+
+    if (existing) {
+      return res.status(409).json({ message: 'Username already exists' });
+    }
+
+    // Insert new officer
+    db.prepare(`
+      INSERT INTO district_officer_table (
+        user_id, username, password, district_code, district_name,
+        phone_number, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      user_id,
+      username,
+      hashedPassword,
+      district_code,
+      district.district_name,
+      cleanedPhone || null,
+      status
+    );
+
+    return res.status(201).json({ 
+      message: 'District officer added successfully',
+      user_id,
+      district_name: district.district_name
+    });
+
+  } catch (err) {
+    console.error("addDistrictOfficer error:", err);
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
 export const getDistrictOfficers = (req, res) => {
   try {
-    const query = `
-      SELECT 
-        d_off.user_id,
-        d_off.username,
-        d_off.district_code,
-        d_off.status,
-        d.district_name,
-        d_off.password,
-        d_off.phone_number,
-        d_off.address,
-        d_off.aadhar_number
-      FROM 
-        district_officer_table d_off
-      JOIN 
-        district_table d
-      ON 
-        d_off.district_code = d.district_code
-    `;
+const query = `
+  SELECT 
+    d_off.user_id,
+    d_off.username,
+    d_off.district_code,
+    d_off.status,
+    m.district_name,
+    d_off.password,
+    d_off.phone_number
+  FROM 
+    district_officer_table d_off
+  JOIN 
+    mosquito_district_master m
+  ON 
+    d_off.district_code = m.district_code
+`;
+
     const stmt = db.prepare(query);
     const result = stmt.all();
     return res.json(result);
@@ -347,5 +433,117 @@ export const getChlorinationDataCollectors = (req, res) => {
   } catch (err) {
     console.error("getChlorinationDataCollectors error:", err);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+function generateMosDistrictCode(district_name) {
+  const prefix = district_name.trim().substring(0, 4).toUpperCase(); // First 4 letters
+  const codePrefix = `MOS${prefix}`; // e.g., MOSCHEN
+
+  // Count total number of rows in the table (not by prefix)
+  const { total } = db.prepare(`SELECT COUNT(*) AS total FROM mosquito_district_master`).get();
+
+  const nextNumber = String(total + 1).padStart(3, '0'); // Global 001, 002, ...
+  return `${codePrefix}${nextNumber}`;
+}
+
+export const addMosquitoDistrict = (req, res) => {
+  const { district_name } = req.body;
+
+  if (!district_name) {
+    return res.status(400).json({ message: 'District name is required' });
+  }
+
+  try {
+    const district_code = generateMosDistrictCode(district_name);
+
+    db.prepare(`
+      INSERT INTO mosquito_district_master (district_code, district_name)
+      VALUES (?, ?)
+    `).run(district_code, district_name);
+
+    return res.status(201).json({ message: 'District added', district_code });
+  } catch (err) {
+    if (err.message.includes('UNIQUE constraint failed')) {
+      return res.status(409).json({ message: 'District already exists' });
+    }
+    console.error('addMosquitoDistrict error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const getMosquitoDistricts = (req, res) => {
+  try {
+    const districts = db.prepare(`SELECT * FROM mosquito_district_master`).all();
+    return res.json(districts);
+  } catch (err) {
+    console.error('getMosquitoDistricts error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Add this to your backend routes
+// Add this to your existing backend routes file
+export const getOfficerCount = (req, res) => {
+  const { district } = req.query;
+  
+  if (!district) {
+    return res.status(400).json({ message: 'District code is required' });
+  }
+
+  try {
+    const result = db.prepare(`
+      SELECT COUNT(*) as count FROM district_officer_table
+      WHERE district_code = ?
+    `).get(district);
+    
+    return res.json({ count: result.count });
+  } catch (err) {
+    console.error('Error getting officer count:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
+export const addChlorineUserDataEntry = async (req, res) => {
+  console.log("Incoming chlorine data:", req.body);
+  try {
+    const {
+      ppm,
+      base64Image,
+      latitude,
+      longitude,
+      timestamp,
+      user_id,
+      username,
+      hub_id,
+      hub_name,
+    } = req.body;
+
+    if (!ppm || !base64Image || !latitude || !longitude || !timestamp) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // Save image to disk
+    const buffer = Buffer.from(base64Image, 'base64');
+    const filename = `chlorine_image_${Date.now()}.jpg`;
+    const dir = path.join(process.cwd(), 'uploads');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+    const filePath = path.join(dir, filename);
+    fs.writeFileSync(filePath, buffer);
+
+    // Save record to DB
+    const stmt = db.prepare(`
+      INSERT INTO chlorine_data_collection 
+      (ppm, image_path, latitude, longitude, timestamp, hub_id, hub_name, user_id, username)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    stmt.run(ppm, `/uploads/${filename}`, latitude, longitude, timestamp, hub_id, hub_name, user_id, username);
+
+    return res.status(201).json({ message: 'Data stored successfully' });
+  } catch (err) {
+    console.error('addChlorineDataEntry error:', err);
+    return res.status(500).json({ message: 'Server error', error: err.message });
   }
 };

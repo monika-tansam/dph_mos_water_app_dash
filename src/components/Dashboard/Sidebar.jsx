@@ -25,6 +25,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
   const navItems = [
     { text: "Home", icon: <HomeIcon />, href: "/mosquito-admin-dashboard" },
     { text: "State", icon: <DashboardIcon />, href: "/state" },
+    { text: "District Master Table", icon: <DashboardIcon />, href: "/mos-district-master-table" },
     { text: "Data Collection", icon: <BarChartIcon />, href: "/data" },
   ];
 
