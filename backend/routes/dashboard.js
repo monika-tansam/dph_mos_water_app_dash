@@ -3,7 +3,7 @@ import express from 'express';
 import db from '../utils/db.js';
 import {getDashboardData,addDistrictOfficer,getDistrictData,getDistrictOfficers,addDataCollection,addChlorinationHub,addChlorinationDistrict,
   getAllHubsWithDistricts,
-  addChlorinationUser,getOfficerCount,
+  addChlorinationUser,getOfficerCount,addChlorineUserDataEntry,
   getChlorinationUsers,addChlorinationDataCollector,getChlorinationDataCollectors,addMosquitoDistrict, getMosquitoDistricts
 } from '../controllers/dashboardController.js';
 
@@ -31,6 +31,7 @@ router.get('/chl-hubusers', getChlorinationUsers);
 // Chlorination inspection tester creation
 router.post('/add-chl-datacollector', addChlorinationDataCollector)
 router.get('/chl-datacollector', getChlorinationDataCollectors)
+router.post('/chl_datacollection', addChlorineUserDataEntry);
 // Chlorination prediction route
 router.get('/', (req, res) => {
   const { user_id, role, hub_id } = req.query;

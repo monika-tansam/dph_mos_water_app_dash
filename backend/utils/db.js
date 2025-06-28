@@ -72,18 +72,19 @@ CREATE TABLE IF NOT EXISTS chlorination_hub_users (
     FOREIGN KEY (hub_id) REFERENCES chlorination_hubs(hub_id)
   );
 
-    CREATE TABLE IF NOT EXISTS chlorination_data_collectors (
-    user_id TEXT PRIMARY KEY,
-    username TEXT,
-    email TEXT,
-    hashedPassword TEXT,
+  CREATE TABLE IF NOT EXISTS chlorine_data_collection (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ppm REAL NOT NULL,
+    image_path TEXT NOT NULL,
+    latitude REAL NOT NULL,
+    longitude REAL NOT NULL,
+    timestamp TEXT NOT NULL,
     hub_id TEXT,
     hub_name TEXT,
-    phone_number TEXT,
-    FOREIGN KEY (hub_id) REFERENCES chlorination_hubs(hub_id)
+    user_id TEXT,
+    username TEXT
   );
 
-    -- ✅ NEW TABLE for Mosquito District Master
   CREATE TABLE IF NOT EXISTS mosquito_district_master (
     district_code TEXT PRIMARY KEY,
     district_name TEXT UNIQUE

@@ -503,3 +503,47 @@ export const getOfficerCount = (req, res) => {
     return res.status(500).json({ message: 'Server error' });
   }
 };
+
+
+export const addChlorineUserDataEntry = async (req, res) => {
+  console.log("Incoming chlorine data:", req.body);
+  try {
+    const {
+      ppm,
+      base64Image,
+      latitude,
+      longitude,
+      timestamp,
+      user_id,
+      username,
+      hub_id,
+      hub_name,
+    } = req.body;
+
+    if (!ppm || !base64Image || !latitude || !longitude || !timestamp) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // Save image to disk
+    const buffer = Buffer.from(base64Image, 'base64');
+    const filename = `chlorine_image_${Date.now()}.jpg`;
+    const dir = path.join(process.cwd(), 'uploads');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+    const filePath = path.join(dir, filename);
+    fs.writeFileSync(filePath, buffer);
+
+    // Save record to DB
+    const stmt = db.prepare(`
+      INSERT INTO chlorine_data_collection 
+      (ppm, image_path, latitude, longitude, timestamp, hub_id, hub_name, user_id, username)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    stmt.run(ppm, `/uploads/${filename}`, latitude, longitude, timestamp, hub_id, hub_name, user_id, username);
+
+    return res.status(201).json({ message: 'Data stored successfully' });
+  } catch (err) {
+    console.error('addChlorineDataEntry error:', err);
+    return res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
