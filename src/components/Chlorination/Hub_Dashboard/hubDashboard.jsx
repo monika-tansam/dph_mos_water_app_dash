@@ -1,187 +1,129 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import DashboardLayout from "./DashboardLayout";
-// import TamilNaduMap from "./hubTamilNadu";
 
-
- const dataBoxes = [
-  { title: "Chennai Hub", districtCount: 11 },
-  { title: "Users List" },
-  { title:"Cycle 1"},
-  { title: "Cycle 2"},
-];
+const staticDistrictCount = {
+  "CHENNAI HUB": 11,
+  "COIMBATORE HUB": 7,
+  "TIRUCHIRAPALLI HUB": 7,
+  "TIRUNELVELI HUB": 6,
+};
 
 const HubDashboard = () => {
+  const [user, setUser] = useState(null);
+  const [cycle1Count, setCycle1Count] = useState(0);
+  const [cycle2Count, setCycle2Count] = useState(0);
+  const [userListCount, setUserListCount] = useState(0);
+
   const today = new Date();
-
   const formatDate = (date) => date.toISOString().split("T")[0];
-
   const nextMonthDate = new Date(today);
   nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
-
-  // State for 'From' and 'To' dates
-  const [fromDate, setFromDate] = useState("");  
+  const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState(formatDate(nextMonthDate));
-
   const [downloadDropdownOpen, setDownloadDropdownOpen] = useState(false);
 
-  const toggleDownloadDropdown = () =>
-    setDownloadDropdownOpen((prev) => !prev);
+  useEffect(() => {
+    const loggedInUsername = localStorage.getItem("loggedInUsername");
+    if (!loggedInUsername) return;
+
+    fetch("http://localhost:3000/dashboard/chl-hubusers")
+      .then((res) => res.json())
+      .then((data) => {
+        const currentUser = data.find((u) => u.username === loggedInUsername);
+        if (currentUser) {
+          setUser(currentUser);
+          fetchUserCount(currentUser.hub_id);
+          fetchCycleCounts(currentUser.hub_id);
+        }
+      });
+  }, []);
+
+  const fetchUserCount = async (hub_id) => {
+    try {
+      const res = await fetch("http://localhost:3000/dashboard/chl-datacollector");
+      const data = await res.json();
+      const filtered = data.filter((d) => d.hub_id === hub_id);
+      setUserListCount(filtered.length);
+    } catch (err) {
+      console.error("User count fetch error:", err);
+    }
+  };
+
+  const fetchCycleCounts = async (hub_id) => {
+    try {
+      const res = await fetch("http://localhost:3000/dashboard/chl-datacollection");
+      const data = await res.json();
+      const hubData = data.filter((d) => d.hub_id === hub_id);
+      const cycle1 = hubData.filter((d) => d.cycle === 1).length;
+      const cycle2 = hubData.filter((d) => d.cycle === 2).length;
+      setCycle1Count(cycle1);
+      setCycle2Count(cycle2);
+    } catch (err) {
+      console.error("Cycle count fetch error:", err);
+    }
+  };
+
+  const toggleDownloadDropdown = () => setDownloadDropdownOpen((prev) => !prev);
 
   const handleDownload = (format) => {
     setDownloadDropdownOpen(false);
     alert(`Downloading as ${format.toUpperCase()} for range ${fromDate || "N/A"} to ${toDate}`);
   };
 
+  const hubName = user?.hub_name?.toUpperCase() || "UNKNOWN HUB";
+  const districtCount = staticDistrictCount[hubName] || 0;
+
+  const dataBoxes = [
+    { title: user?.hub_name || "Hub", districtCount },
+    { title: "Users List", count: userListCount },
+    { title: "Cycle 1", count: cycle1Count },
+    { title: "Cycle 2", count: cycle2Count },
+  ];
+
   return (
     <DashboardLayout>
       <div className="row mb-4">
-        {dataBoxes.map(({ title, districtCount }, idx) => (
-        <div key={idx} className="col-12 col-sm-6 col-md-3 mb-3 d-flex">
-          <div
-            className="card text-center w-100"
-            style={{
-              height: "148px",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: "center",
-              borderRadius: "18px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-              transition: "box-shadow 0.2s, transform 0.2s",
-              fontFamily: "Nunito, Poppins, sans-serif",
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.boxShadow = "0 8px 24px rgba(25, 118, 210, 0.18)";
-              e.currentTarget.style.transform = "translateY(-4px)";
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)";
-              e.currentTarget.style.transform = "none";
-            }}
-          >
-            <div className="card-body d-flex flex-column justify-content-center align-items-center p-2">
-              <h5 className="card-title" style={{ fontWeight: 700, color: "steelblue", marginBottom: 8 }}>
-                {title}
-              </h5>
-              {districtCount !== undefined && (
-                <div className="card-text" style={{ color: "#007556", fontWeight: 600 }}>
-                  <div>Districts: {districtCount}</div>
-                </div>
-              )}
+        {dataBoxes.map(({ title, districtCount, count }, idx) => (
+          <div key={idx} className="col-12 col-sm-6 col-md-3 mb-3 d-flex">
+            <div className="card text-center w-100" style={{ height: "148px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", borderRadius: "18px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)", transition: "box-shadow 0.2s, transform 0.2s" }}>
+              <div className="card-body d-flex flex-column justify-content-center align-items-center p-2">
+                <h5 className="card-title" style={{ fontWeight: 700, color: "steelblue", marginBottom: 8 }}>{title}</h5>
+                {districtCount !== undefined && idx === 0 && (
+                  <div className="card-text" style={{ color: "#007556", fontWeight: 600 }}>Districts: {districtCount}</div>
+                )}
+                {count !== undefined && idx !== 0 && (
+                  <div className="card-text" style={{ color: "#333", fontWeight: 600 }}>Count: {count}</div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      ))}
-
+        ))}
       </div>
 
-     <div
-  className="mb-4"
-  style={{
-    height: "400px",
-    overflow: "hidden",
-    borderRadius: "18px", 
-  }}
->
-       {/* <TamilNaduMap /> */}
-     </div>
+      {/* Optional: Map or other visuals */}
+      <div className="mb-4" style={{ height: "400px", overflow: "hidden", borderRadius: "18px" }}></div>
 
-      
+      {/* Date Filter and Download */}
       <div className="d-flex align-items-center mb-4 gap-3 flex-wrap">
-        {/* From Date */}
         <div>
-          <label htmlFor="fromDate" className="form-label me-2" style={{ fontWeight: 600, color: "#425466", fontFamily: "Nunito, Poppins, sans-serif" }}>
-            From:
-          </label>
-          <input
-            type="date"
-            id="fromDate"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-            className="form-control"
-            style={{
-              maxWidth: "180px",
-              borderRadius: "8px",
-              border: "1px solid #b3c6e0",
-              fontFamily: "Nunito, Poppins, sans-serif",
-              background: "#f5f7fa",
-              color: "#425466",
-              fontWeight: 500,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.04)"
-            }}
-          />
+          <label htmlFor="fromDate" className="form-label me-2">From:</label>
+          <input type="date" id="fromDate" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="form-control" />
         </div>
 
-        {/* To Date */}
         <div>
-          <label htmlFor="toDate" className="form-label me-2" style={{ fontWeight: 600, color: "#425466", fontFamily: "Nunito, Poppins, sans-serif" }}>
-            To:
-          </label>
-          <input
-            type="date"
-            id="toDate"
-            value={toDate}
-            min={fromDate || undefined}
-            max={formatDate(nextMonthDate)}
-            onChange={(e) => setToDate(e.target.value)}
-            className="form-control"
-            style={{
-              maxWidth: "180px",
-              borderRadius: "8px",
-              border: "1px solid #b3c6e0",
-              fontFamily: "Nunito, Poppins, sans-serif",
-              background: "#f5f7fa",
-              color: "#425466",
-              fontWeight: 500,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.04)"
-            }}
-          />
+          <label htmlFor="toDate" className="form-label me-2">To:</label>
+          <input type="date" id="toDate" value={toDate} onChange={(e) => setToDate(e.target.value)} className="form-control" />
         </div>
 
-        {/* Download Dropdown */}
         <div className="dropdown mt-4">
-          <button
-            className="btn dropdown-toggle"
-            style={{
-              height: "47px",
-              paddingTop: "3px",
-              paddingBottom: "2px",
-              fontSize: "1rem",
-              fontWeight: 700,
-              fontFamily: "Nunito, Poppins, sans-serif",
-              background: "linear-gradient(90deg, #5b8def 0%, #b3e0ff 1000%)",
-              color: "#fff",
-              borderRadius: "8px",
-              border: "none",
-              boxShadow: "0 2px 12px 0 rgba(255,255,255,0.18)", // Very light white shadow
-              transition: "background 0.2s, box-shadow 0.2s"
-            }}
-            onClick={toggleDownloadDropdown}
-            aria-expanded={downloadDropdownOpen}
-          >
+          <button className="btn dropdown-toggle" onClick={toggleDownloadDropdown}>
             Download Report
           </button>
           {downloadDropdownOpen && (
-            <ul
-              className="dropdown-menu dropdown-menu-end show"
-              style={{
-                position: "absolute",
-                borderRadius: "8px",
-                boxShadow: "0 4px 16px rgba(70,130,180,0.10)",
-                fontFamily: "Nunito, Poppins, sans-serif"
-              }}
-            >
+            <ul className="dropdown-menu dropdown-menu-end show">
               {["csv", "pdf", "excel", "doc"].map((format) => (
                 <li key={format}>
-                  <button
-                    className="dropdown-item"
-                    style={{
-                      fontWeight: 600,
-                      color: "#425466",
-                      fontFamily: "Nunito, Poppins, sans-serif"
-                    }}
-                    onClick={() => handleDownload(format)}
-                  >
+                  <button className="dropdown-item" onClick={() => handleDownload(format)}>
                     {format.toUpperCase()}
                   </button>
                 </li>
