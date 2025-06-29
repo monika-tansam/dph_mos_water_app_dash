@@ -71,3 +71,6 @@ const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);
 });
+// app.listen(3000, '0.0.0.0', () => {
+//   console.log('✅ Server running at http://192.168.146.1:3000');
+// });
