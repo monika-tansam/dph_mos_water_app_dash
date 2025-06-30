@@ -92,4 +92,4 @@ CREATE TABLE IF NOT EXISTS chlorination_hub_users (
 
 `);
 
-export default db;
+export default db; 
