@@ -46,7 +46,7 @@ const ChlorinationHeader = ({ toggleSidebar }) => {
      
         <div className="flex-grow-1 text-center header-color header-title-wrap">
           <h3 className="gov-title">Directorate of Public Health and Preventive Medicine</h3>
-          <h4 className="mb-0 dph-title">Water Analysis  Dashboard</h4>
+          <h4 className="mb-0 dph-title">Water Analysis Admin Dashboard</h4>
         </div>
         
         <div className="d-flex align-items-center gap-3">
