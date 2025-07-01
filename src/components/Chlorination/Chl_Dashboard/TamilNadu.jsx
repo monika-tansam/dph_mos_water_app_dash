@@ -148,6 +148,17 @@ const TamilNaduMap = () => {
   const [filterEnabled, setFilterEnabled] = useState(false);
   const [selectedBlockName, setSelectedBlockName] = useState("");
   const [chlData, setChlData] = useState([]);
+  const [legendType, setLegendType] = useState("block");
+
+  useEffect(() => {
+  if (chlData && chlData.length > 0) {
+    chlData.forEach((entry, i) => {
+      console.log("CHL MARKER:", entry.latitude, entry.longitude, entry.block_name);
+    });
+  } else {
+    console.log("CHL MARKER: No data available or empty array");
+  }
+}, [chlData]);
 
   const mapRef = useRef();
 
@@ -164,7 +175,7 @@ const TamilNaduMap = () => {
     const hubFileMap = {
       hub001: "/maps/chennaihub_blocks.json",
       hub002: "/maps/coimbatorehub.json",
-      hub003: "/maps/thiruchirapalli.json",
+      hub003: "/maps/tiruchirapalli.json",
       hub004: "/maps/tirunelvelihub.json",
     };
     const file = hubFileMap[pinLocations.find(h => h.label === selectedHub)?.code];
@@ -207,22 +218,26 @@ useEffect(() => {
     return;
   }
 
-  let url = `http://localhost:3000/dashboard/chl_datacollection?hub_id=${encodeURIComponent(pinLocations.find(h => h.label === selectedHub)?.code)}`;
+  let url = `http://localhost:3000/dashboard/chl_datacollection?hub_id=${encodeURIComponent(
+  pinLocations.find(h => h.label === selectedHub)?.code.toUpperCase()
+)}`;
+
   if (selectedDistrict) {
     url += `&district=${encodeURIComponent(selectedDistrict)}`;
   }
 
   fetch(url)
     .then(res => res.json())
-    .then(data => {
-      if (data.status === "success") {
-        setChlData(data.data || []);
-      }
-    })
-    .catch(err => {
-      console.error("Failed to fetch chlorine data:", err);
-      setChlData([]);
-    });
+  .then(data => {
+  console.log("Fetched chlorine data:", data);
+  if (Array.isArray(data.data)) {
+    setChlData(data.data);
+  } else {
+    console.warn("Unexpected data format:", data);
+    setChlData([]);
+  }
+})
+
 }, [selectedHub, selectedDistrict]);
 
   const styleDistrict = (feature) => {
@@ -343,7 +358,16 @@ useEffect(() => {
                 position={[block.lat, block.lng]}
                 icon={L.divIcon({
                   className: "custom-block-icon",
-                  html: `<div style="background: ${blockColorMap[type] || "#999"}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">${block.name}</div>`
+                  html: ` <div style="
+                background: ${blockColorMap[type] || "#999"};
+                color: #fff;
+                padding: 4px 10px;
+                border-radius: 8px;
+                font-size: 12px;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+                font-weight: bold;
+                white-space: nowrap;
+              ">${block.name}</div>`
                 })}
               >
                 <Popup>
@@ -352,24 +376,126 @@ useEffect(() => {
               </Marker>
             ))
         )}
-        {chlData.map((entry, i) => (
-  <Marker key={`chl-${i}`} position={[entry.latitude, entry.longitude]}>
-    <Popup maxWidth={250}>
-      <div style={{ fontFamily: "Nunito, sans-serif" }}>
-        <div><strong>Collected by:</strong> {entry.username}</div>
-        <div><strong>PPM:</strong> {entry.ppm}</div>
-        <div><strong>Time:</strong> {new Date(entry.timestamp).toLocaleString()}</div>
-        {entry.image_url && (
-          <div style={{ marginTop: "8px" }}>
-            <img src={entry.image_url} alt="Chlorination" style={{ width: "100%", borderRadius: "6px" }} />
+  {chlData.map((entry, i) => {
+  const lat = Number(entry.latitude);
+  const lng = Number(entry.longitude);
+
+  if (isNaN(lat) || isNaN(lng)) {
+    console.warn(`Skipping invalid marker at index ${i}:`, entry);
+    return null;
+  }
+
+  const timestamp = new Date(entry.timestamp);
+  const formattedDate = timestamp.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+  const formattedTime = timestamp.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+
+  return (
+    <Marker key={`chl-${i}`} position={[lat, lng]} icon={customIcon}>
+      <Popup maxWidth={250}>
+        <div style={{ fontFamily: "Nunito, sans-serif" }}>
+          <div><strong>Collected by:</strong> {entry.username}</div>
+         <div>
+            <strong>PPM:</strong>{" "}
+            <span style={{
+              color:
+                entry.ppm < 1.95 ? "red" :
+                entry.ppm > 2.05 ? "orange" :
+                "green",
+              fontWeight: "bold"
+            }}>
+              {entry.ppm}
+            </span>
           </div>
-        )}
-      </div>
-    </Popup>
-  </Marker>
-))}
+          <div><strong>Date:</strong> {formattedDate}</div>
+          <div><strong>Time:</strong> {formattedTime}</div>
+          <div><strong>Lat:</strong> {lat}</div>
+          <div><strong>Lng:</strong> {lng}</div>
+          {entry.image_url && (
+            <div style={{ marginTop: "8px" }}>
+              <img src={entry.image_url} alt="Chlorination" style={{ width: "100%", borderRadius: "6px" }} />
+            </div>
+          )}
+        </div>
+      </Popup>
+    </Marker>
+  );
+})}
 
       </MapContainer>
+     <div style={{
+  position: "absolute",
+  bottom: 10,
+  right: 10,
+  zIndex: 1000,
+  background: "#fff",
+  padding: "10px 12px",
+  borderRadius: "6px",
+  boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
+  fontSize: "13px",
+  fontFamily: "Nunito, sans-serif",
+  width: "220px"
+}}>
+  <select
+    value={legendType}
+    onChange={(e) => setLegendType(e.target.value)}
+    style={{
+      width: "100%",
+      marginBottom: "10px",
+      padding: "6px",
+      borderRadius: "4px",
+      border: "1px solid #ccc"
+    }}
+  >
+    <option value="block">Block Type Legend</option>
+    <option value="ppm">PPM Status Legend</option>
+  </select>
+
+  {legendType === "block" && (
+     <div
+    style={{
+      display: "flex",
+      flexDirection: "column",       // Vertical layout
+      gap: "6px",
+      maxHeight: "120px",            // Limit height
+      overflowY: "auto",             // Enable scroll
+      paddingRight: "4px"            // Prevent scrollbar overlap
+    }}>
+      {Object.entries(blockColorMap).map(([type, color], i) => (
+        <div key={i} style={{ display: "flex", alignItems: "center", gap: "4px", width: "100%" }}>
+          <div style={{ width: 12, height: 12, backgroundColor: color, borderRadius: "2px" }} />
+          <span>{type}</span>
+        </div>
+      ))}
+    </div>
+  )}
+
+  {legendType === "ppm" && (
+    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+        <div style={{ width: 12, height: 12, backgroundColor: "red", borderRadius: "2px" }} />
+        <span>Under-chlorinated (&lt; 1.95)</span>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+        <div style={{ width: 12, height: 12, backgroundColor: "green", borderRadius: "2px" }} />
+        <span>Ideal (1.95–2.05)</span>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+        <div style={{ width: 12, height: 12, backgroundColor: "orange", borderRadius: "2px" }} />
+        <span>Over-chlorinated (&gt; 2.05)</span>
+      </div>
+    </div>
+  )}
+</div>
+ 
     </div>
   );
 };
