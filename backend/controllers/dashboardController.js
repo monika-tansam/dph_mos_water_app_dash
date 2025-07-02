@@ -435,6 +435,35 @@ export const getChlorinationDataCollectors = (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+export const getChlorinationDataCollection = (req, res) => {
+  try {
+    const data = db.prepare(`SELECT * FROM chlorine_data_collection`).all();
+    res.json({ data });
+  } catch (err) {
+    console.error('Failed to fetch chlorination data:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+export const getChlorineDataByHubId = (req, res) => {
+  const { hub_id } = req.query;
+
+  if (!hub_id) {
+    return res.status(400).json({ message: "Hub ID is required" });
+  }
+
+  try {
+    const stmt = db.prepare(
+     `SELECT * FROM chlorine_data_collection WHERE UPPER(hub_id) = UPPER(?)`
+    );
+    const rows = stmt.all(hub_id);
+
+    return res.status(200).json({ status: "success", data: rows });
+  } catch (err) {
+    console.error("getChlorineDataByHubId error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
 
 function generateMosDistrictCode(district_name) {
   const prefix = district_name.trim().substring(0, 4).toUpperCase(); // First 4 letters
