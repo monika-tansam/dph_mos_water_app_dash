@@ -1,6 +1,4 @@
-import React, { useState } from "react";
-import { DataGrid } from "@mui/x-data-grid";
-import DashboardLayout from "./DashboardLayout";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   IconButton,
@@ -12,98 +10,142 @@ import {
   MenuItem,
   FormControl,
 } from "@mui/material";
+import DashboardLayout from "./DashboardLayout";
+import { DataGrid } from "@mui/x-data-grid";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import CloseIcon from "@mui/icons-material/Close";
 
 export default function ChlorinationStateData() {
-  const [openImg, setOpenImg] = useState(false);
-  const [imgSrc, setImgSrc] = useState("");
+  const [rows, setRows] = useState([]);
+  const [hubFilter, setHubFilter] = useState("");
   const [openMap, setOpenMap] = useState(false);
   const [mapCoords, setMapCoords] = useState({ lat: 0, lng: 0 });
-  const [hubFilter, setHubFilter] = useState("");
+  const [openImg, setOpenImg] = useState(false);
+  const [imgSrcs, setImgSrcs] = useState([]);
+  const [imgIndex, setImgIndex] = useState(0);
 
-  const rows = [
-    {
-      id: 1,
-      userId: "U001",
-      username: "Johndoe",
-      hub: "Chennai",
-      district: "Tirupattur",
-      userGeo: "13.0827, 80.2707",
-      image: "https://via.placeholder.com/150",
-      geo: "13.0827, 80.2707",
-      lat: 13.0827,
-      lng: 80.2707,
-    },
-    {
-      id: 2,
-      userId: "U002",
-      username: "SitaRani",
-      hub: "Coimbatore",
-      district: "Coimbatore",
-      userGeo: "11.0168, 76.9558",
-      image: "https://via.placeholder.com/150",
-      geo: "11.0168, 76.9558",
-      lat: 11.0168,
-      lng: 76.9558,
-    },
-    {
-      id: 3,
-      userId: "U003",
-      username: "Ramkumar",
-      hub: "Thiruchirapalli",
-      district: "Karur",
-      userGeo: "9.9252, 78.1198",
-      image: "https://via.placeholder.com/150",
-      geo: "9.9252, 78.1198",
-      lat: 9.9252,
-      lng: 78.1198,
-    },
-  ];
+  // Fetch data from backend
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/dashboard/chl_datacollection");
+        const result = await res.json();
 
-  const hubs = ["Chennai", "Thiruchirapalli", "Tirunelveli", "Coimbatore"];
+        if (Array.isArray(result.data)) {
+          const formatted = result.data.map((item, index) => ({
+            id: index + 1,
+            ...item,
+          }));
+          setRows(formatted);
+        } else {
+          console.error("Invalid data format:", result);
+        }
+      } catch (err) {
+        console.error("Failed to fetch chlorination data:", err);
+      }
+    };
 
-  const filteredRows = rows.filter((row) =>
-    hubFilter ? row.hub === hubFilter : true
-  );
+    fetchData();
+  }, []);
+
+  const hubs = [...new Set(rows.map((r) => r.hub_name))];
+  const filteredRows = hubFilter
+    ? rows.filter((row) => row.hub_name === hubFilter)
+    : rows;
 
   const columns = [
     { field: "id", headerName: "S.No", width: 80 },
-    { field: "userId", headerName: "User ID", width: 120 },
-    { field: "username", headerName: "Username", width: 130 },
-    { field: "hub", headerName: "Hub", width: 130 },
-    { field: "district", headerName: "District", width: 130 },
-    { field: "userGeo", headerName: "User Geolocation", width: 160 },
+    { field: "user_id", headerName: "User ID", width: 180 },
+    { field: "username", headerName: "Username", width: 140 },
+    { field: "hub_id", headerName: "Hub ID", width: 120 },
+    { field: "hub_name", headerName: "Hub Name", width: 140 },
+    { field: "ppm", headerName: "PPM Value", width: 100 },
     {
-      field: "image",
-      headerName: "Image",
-      width: 100,
-      renderCell: (params) => (
-        <IconButton
-          onClick={() => {
-            setImgSrc(params.value);
-            setOpenImg(true);
-          }}
-        >
-          <VisibilityIcon />
-        </IconButton>
-      ),
+      field: "chlorine_status",
+      headerName: "Status",
+      width: 200,
+      renderCell: (params) => {
+        const ppm = parseFloat(params.row.ppm);
+        let text = "";
+        let color = "";
+
+        if (ppm >= 1.95 && ppm <= 2.05) {
+          text = "Perfectly Chlorinated";
+          color = "green";
+        } else if (ppm < 1.95) {
+          text = "Needs More Chlorine";
+          color = "red";
+        } else if (ppm > 2.05) {
+          text = "Over Chlorinated";
+          color = "orange";
+        }
+
+        return (
+          <Typography
+            variant="body2"
+            style={{
+              fontWeight: 600,
+              color: color,
+              fontFamily: "Nunito, sans-serif",
+            }}
+          >
+            {text}
+          </Typography>
+        );
+      },
     },
-    { field: "geo", headerName: "Geolocation", width: 160 },
+    { field: "timestamp", headerName: "Timestamp", width: 200 },
+    { field: "latitude", headerName: "Latitude", width: 120 },
+    { field: "longitude", headerName: "Longitude", width: 120 },
     {
       field: "map",
       headerName: "Map",
       width: 100,
-      renderCell: (params) => (
-        <IconButton
-          onClick={() => {
-            setMapCoords({ lat: params.row.lat, lng: params.row.lng });
-            setOpenMap(true);
-          }}
-        >
-          <VisibilityIcon />
-        </IconButton>
-      ),
+      renderCell: (params) => {
+        const lat = params.row.latitude;
+        const lng = params.row.longitude;
+        const valid = lat != null && lng != null;
+        return valid ? (
+          <IconButton
+            onClick={() => {
+              setMapCoords({ lat, lng });
+              setOpenMap(true);
+            }}
+          >
+            <VisibilityIcon />
+          </IconButton>
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            N/A
+          </Typography>
+        );
+      },
+    },
+    {
+      field: "images",
+      headerName: "Images",
+      width: 100,
+      renderCell: (params) => {
+        const src = params.row.image_path;
+        const isChlorineImage = src && src.includes("chlorine_image_");
+
+        return isChlorineImage ? (
+          <IconButton
+            onClick={() => {
+              const cleanPath = src.replace(/\\/g, "/").replace(/^\/?/, "");
+              setImgSrcs([`http://localhost:3000/${cleanPath}`]);
+              setImgIndex(0);
+              setOpenImg(true);
+            }}
+          >
+            <VisibilityIcon />
+          </IconButton>
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            N/A
+          </Typography>
+        );
+      },
     },
   ];
 
@@ -113,9 +155,13 @@ export default function ChlorinationStateData() {
         <Typography
           variant="h5"
           gutterBottom
-          sx={{ fontWeight: 600, color: "#2A2F5B", fontFamily: "Nunito, sans-serif" }}
+          sx={{
+            fontWeight: 600,
+            color: "#2A2F5B",
+            fontFamily: "Nunito, sans-serif",
+          }}
         >
-          DATA COLLECTION
+          CHLORINATION DATA COLLECTION
         </Typography>
 
         {/* Filter */}
@@ -131,7 +177,7 @@ export default function ChlorinationStateData() {
                 <em>All Hubs</em>
               </MenuItem>
               {hubs.map((hub, index) => (
-                <MenuItem key={index} value={hub} sx={{ fontFamily: "Nunito, sans-serif" }}>
+                <MenuItem key={index} value={hub}>
                   {hub}
                 </MenuItem>
               ))}
@@ -139,6 +185,7 @@ export default function ChlorinationStateData() {
           </FormControl>
         </Box>
 
+        {/* Data Grid */}
         <Box style={{ height: 500, width: "100%" }}>
           <DataGrid
             rows={filteredRows}
@@ -150,7 +197,6 @@ export default function ChlorinationStateData() {
               border: "2px solid #2A2F5B",
               borderRadius: 2,
               boxShadow: 2,
-
               "& .MuiDataGrid-columnHeaders": {
                 backgroundColor: "#2A2F5B",
                 color: "black",
@@ -173,27 +219,6 @@ export default function ChlorinationStateData() {
             }}
           />
         </Box>
-
-        {/* Image Dialog */}
-        <Dialog open={openImg} onClose={() => setOpenImg(false)} maxWidth="sm">
-          <DialogTitle sx={{ fontFamily: "Nunito, sans-serif" }}>
-            Image Viewer
-            <IconButton
-              aria-label="close"
-              onClick={() => setOpenImg(false)}
-              sx={{ position: "absolute", right: 8, top: 8 }}
-            >
-              <CloseIcon />
-            </IconButton>
-          </DialogTitle>
-          <DialogContent>
-            <img
-              src={imgSrc}
-              alt="Preview"
-              style={{ maxWidth: "100%", maxHeight: "400px" }}
-            />
-          </DialogContent>
-        </Dialog>
 
         {/* Map Dialog */}
         <Dialog open={openMap} onClose={() => setOpenMap(false)} maxWidth="md">
@@ -219,6 +244,98 @@ export default function ChlorinationStateData() {
             ></iframe>
           </DialogContent>
         </Dialog>
+
+        {/* Image Viewer */}
+       <Dialog open={openImg} onClose={() => setOpenImg(false)} maxWidth="md" fullWidth>
+  <DialogTitle sx={{ fontFamily: "Nunito, sans-serif" }}>
+    Image Viewer
+    <IconButton
+      aria-label="close"
+      onClick={() => setOpenImg(false)}
+      sx={{ position: "absolute", right: 8, top: 8 }}
+    >
+      <CloseIcon />
+    </IconButton>
+  </DialogTitle>
+<Dialog open={openImg} onClose={() => setOpenImg(false)} maxWidth="md" fullWidth>
+  <DialogTitle sx={{ fontFamily: "Nunito, sans-serif" }}>
+    Image Viewer
+    <IconButton
+      aria-label="close"
+      onClick={() => setOpenImg(false)}
+      sx={{ position: "absolute", right: 8, top: 8 }}
+    >
+      <CloseIcon />
+    </IconButton>
+  </DialogTitle>
+   <DialogContent sx={{ p: 2, backgroundColor: "#f5f5f5" }}>
+  {imgSrcs.length > 0 ? (
+    <Box
+      sx={{
+        backgroundColor: "#fff",
+        borderRadius: 2,
+        overflow: "hidden",
+        boxShadow: 2,
+        position: "relative",
+        width: "100%",
+        maxWidth: "100%",
+      }}
+    >
+      {/* Image */}
+      <Box
+        sx={{
+          width: "100%",
+          height: "45vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#000",
+        }}
+      >
+        <img
+          src={imgSrcs[imgIndex]}
+          alt={`img-${imgIndex}`}
+          style={{
+            maxWidth: "100%",
+            maxHeight: "100%",
+            objectFit: "contain",
+          }}
+        />
+      </Box>
+
+      {/* Overlay Metadata */}
+      <Box
+        sx={{
+          position: "absolute",
+          bottom: 10,
+          left: 10,
+          backgroundColor: "rgba(0, 0, 0, 0.6)",
+          color: "#fff",
+          padding: "8px 12px",
+          borderRadius: 2,
+          fontSize: "0.85rem",
+          fontFamily: "Nunito, sans-serif",
+          maxWidth: "85%",
+        }}
+      >
+        <Typography><strong>Lat:</strong> {filteredRows[imgIndex]?.latitude}</Typography>
+        <Typography><strong>Lng:</strong> {filteredRows[imgIndex]?.longitude}</Typography>
+        <Typography><strong>Timestamp:</strong> {filteredRows[imgIndex]?.timestamp}</Typography>
+        <Typography><strong>Hub:</strong> {filteredRows[imgIndex]?.hub_name}</Typography>
+      </Box>
+    </Box>
+  ) : (
+    <Typography sx={{ fontFamily: "Nunito, sans-serif", p: 2 }}>
+      No Image Available
+    </Typography>
+  )}       
+</DialogContent>
+
+
+</Dialog>
+
+</Dialog>
+
       </Box>
     </DashboardLayout>
   );

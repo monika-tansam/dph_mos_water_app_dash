@@ -10,17 +10,19 @@ db.exec(`
     district_name TEXT UNIQUE
   );
 
-  CREATE TABLE IF NOT EXISTS district_officer_table (
-    user_id TEXT PRIMARY KEY,
-    username TEXT,
-    password TEXT,
-    district_code TEXT,
-    phone_number TEXT,
-    address TEXT,
-    aadhar_number TEXT,
-    status TEXT,
-    FOREIGN KEY (district_code) REFERENCES district_table(district_code)
-  );
+-- Fix foreign key reference
+CREATE TABLE IF NOT EXISTS district_officer_table (
+  user_id TEXT PRIMARY KEY,
+  username TEXT,
+  password TEXT,
+  district_code TEXT,
+  district_name TEXT,
+  phone_number TEXT,
+  status TEXT,
+  FOREIGN KEY (district_code) REFERENCES mosquito_district_master(district_code)
+);
+
+
 
   CREATE TABLE IF NOT EXISTS datacollection (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -70,17 +72,24 @@ CREATE TABLE IF NOT EXISTS chlorination_hub_users (
     FOREIGN KEY (hub_id) REFERENCES chlorination_hubs(hub_id)
   );
 
-    CREATE TABLE IF NOT EXISTS chlorination_data_collectors (
-    user_id TEXT PRIMARY KEY,
-    username TEXT,
-    email TEXT,
-    hashedPassword TEXT,
+  CREATE TABLE IF NOT EXISTS chlorine_data_collection (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ppm REAL NOT NULL,
+    image_path TEXT NOT NULL,
+    latitude REAL NOT NULL,
+    longitude REAL NOT NULL,
+    timestamp TEXT NOT NULL,
     hub_id TEXT,
     hub_name TEXT,
-    phone_number TEXT,
-    FOREIGN KEY (hub_id) REFERENCES chlorination_hubs(hub_id)
+    user_id TEXT,
+    username TEXT
+  );
+
+  CREATE TABLE IF NOT EXISTS mosquito_district_master (
+    district_code TEXT PRIMARY KEY,
+    district_name TEXT UNIQUE
   );
 
 `);
 
-export default db;
+export default db; 

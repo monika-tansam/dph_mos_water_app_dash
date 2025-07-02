@@ -1,6 +1,4 @@
-import React, { useState } from "react";
-import { DataGrid } from "@mui/x-data-grid";
-import DashboardLayout from "./DashboardLayout";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   IconButton,
@@ -8,140 +6,159 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
-  Select,
-  MenuItem,
-  FormControl,
 } from "@mui/material";
+import DashboardLayout from "./DashboardLayout";
+import { DataGrid } from "@mui/x-data-grid";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import CloseIcon from "@mui/icons-material/Close";
 
 export default function HubStateData() {
-  const [openImg, setOpenImg] = useState(false);
-  const [imgSrc, setImgSrc] = useState("");
+  const [rows, setRows] = useState([]);
   const [openMap, setOpenMap] = useState(false);
   const [mapCoords, setMapCoords] = useState({ lat: 0, lng: 0 });
-  const [hubFilter, setHubFilter] = useState("");
+  const [openImg, setOpenImg] = useState(false);
+  const [imgSrc, setImgSrc] = useState("");
+  const [imgMeta, setImgMeta] = useState({
+    timestamp: "",
+    latitude: "",
+    longitude: "",
+    hub_name: "",
+  });
 
-  const rows = [
-    {
-      id: 1,
-      userId: "U001",
-      username: "Johndoe",
-      hub: "Chennai",
-      district: "Tirupattur",
-      userGeo: "13.0827, 80.2707",
-      image: "https://via.placeholder.com/150",
-      geo: "13.0827, 80.2707",
-      lat: 13.0827,
-      lng: 80.2707,
-    },
-    {
-      id: 2,
-      userId: "U002",
-      username: "SitaRani",
-      hub: "Coimbatore",
-      district: "Coimbatore",
-      userGeo: "11.0168, 76.9558",
-      image: "https://via.placeholder.com/150",
-      geo: "11.0168, 76.9558",
-      lat: 11.0168,
-      lng: 76.9558,
-    },
-    {
-      id: 3,
-      userId: "U003",
-      username: "Ramkumar",
-      hub: "Thiruchirapalli",
-      district: "Karur",
-      userGeo: "9.9252, 78.1198",
-      image: "https://via.placeholder.com/150",
-      geo: "9.9252, 78.1198",
-      lat: 9.9252,
-      lng: 78.1198,
-    },
-  ];
+  // Get user_id and derive hub_id
+  const userId = localStorage.getItem("user_id"); // e.g., "HUB001USR002"
+  const hubId = userId ? userId.substring(0, 6).toUpperCase() : null;
+useEffect(() => {
+  const user = JSON.parse(localStorage.getItem("loggedInUser"));
 
-  const hubs = ["Chennai", "Thiruchirapalli", "Tirunelveli", "Coimbatore"];
+  if (!user || !user.hub_id) {
+    toast.error("Hub ID missing. Please log in again.");
+    return;
+  }
 
-  const filteredRows = rows.filter((row) =>
-    hubFilter ? row.hub === hubFilter : true
-  );
+  console.log("Fetching data for hub_id:", user.hub_id);
+
+  fetch(`http://localhost:3000/dashboard/chl_datacollection/hubid?hub_id=${user.hub_id}`, {
+    credentials: "include"
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      console.log("API Response:", data);
+      // Try this:
+      if (Array.isArray(data)) {
+        setRows(data); // ✅ if your backend returns array directly
+      } else if (Array.isArray(data.data)) {
+        setRows(data.data); // ✅ if your backend returns { status: 'success', data: [...] }
+      } else {
+        toast.error("Unexpected API response");
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      toast.error("Network error");
+    });
+}, []);
 
   const columns = [
     { field: "id", headerName: "S.No", width: 80 },
-    { field: "userId", headerName: "User ID", width: 120 },
-    { field: "username", headerName: "Username", width: 130 },
-    { field: "hub", headerName: "Hub", width: 130 },
-    { field: "district", headerName: "District", width: 130 },
-    { field: "userGeo", headerName: "User Geolocation", width: 160 },
+    { field: "user_id", headerName: "User ID", width: 180 },
+    { field: "username", headerName: "Username", width: 140 },
+    { field: "hub_id", headerName: "Hub ID", width: 120 },
+    { field: "hub_name", headerName: "Hub Name", width: 140 },
+    { field: "ppm", headerName: "PPM Value", width: 100 },
     {
-      field: "image",
-      headerName: "Image",
-      width: 100,
-      renderCell: (params) => (
-        <IconButton
-          onClick={() => {
-            setImgSrc(params.value);
-            setOpenImg(true);
-          }}
-        >
-          <VisibilityIcon />
-        </IconButton>
-      ),
+      field: "chlorine_status",
+      headerName: "Status",
+      width: 200,
+      renderCell: (params) => {
+        const ppm = parseFloat(params.row.ppm);
+        let text = "";
+        let color = "";
+
+        if (ppm >= 1.95 && ppm <= 2.05) {
+          text = "Perfectly Chlorinated";
+          color = "green";
+        } else if (ppm < 1.95) {
+          text = "Needs More Chlorine";
+          color = "red";
+        } else {
+          text = "Over Chlorinated";
+          color = "orange";
+        }
+
+        return (
+          <Typography variant="body2" style={{ fontWeight: 600, color }}>
+            {text}
+          </Typography>
+        );
+      },
     },
-    { field: "geo", headerName: "Geolocation", width: 160 },
+    { field: "timestamp", headerName: "Timestamp", width: 200 },
+    { field: "latitude", headerName: "Latitude", width: 120 },
+    { field: "longitude", headerName: "Longitude", width: 120 },
     {
       field: "map",
       headerName: "Map",
       width: 100,
-      renderCell: (params) => (
-        <IconButton
-          onClick={() => {
-            setMapCoords({ lat: params.row.lat, lng: params.row.lng });
-            setOpenMap(true);
-          }}
-        >
-          <VisibilityIcon />
-        </IconButton>
-      ),
+      renderCell: (params) => {
+        const { latitude: lat, longitude: lng } = params.row;
+        return lat && lng ? (
+          <IconButton
+            onClick={() => {
+              setMapCoords({ lat, lng });
+              setOpenMap(true);
+            }}
+          >
+            <VisibilityIcon />
+          </IconButton>
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            N/A
+          </Typography>
+        );
+      },
+    },
+    {
+      field: "images",
+      headerName: "Images",
+      width: 100,
+      renderCell: (params) => {
+        const src = params.row.image_path;
+        if (!src) return <Typography color="text.secondary">N/A</Typography>;
+
+        const cleanPath = src.replace(/\\/g, "/").replace(/^\/+/, "");
+        const fullPath = `http://localhost:3000/${cleanPath}`;
+
+        return (
+          <IconButton
+            onClick={() => {
+              setImgSrc(fullPath);
+              setImgMeta({
+                timestamp: params.row.timestamp,
+                latitude: params.row.latitude,
+                longitude: params.row.longitude,
+                hub_name: params.row.hub_name,
+              });
+              setOpenImg(true);
+            }}
+          >
+            <VisibilityIcon />
+          </IconButton>
+        );
+      },
     },
   ];
 
   return (
     <DashboardLayout>
       <Box p={2}>
-        <Typography
-          variant="h5"
-          gutterBottom
-          sx={{ fontWeight: 600, color: "#2A2F5B", fontFamily: "Nunito, sans-serif" }}
-        >
-          DATA COLLECTION
+        <Typography variant="h5" gutterBottom fontWeight={600}>
+          HUB DATA COLLECTION
         </Typography>
-
-        {/* Filter */}
-        <Box display="flex" gap={2} alignItems="center" mb={2}>
-          <FormControl sx={{ minWidth: 200 }} size="small">
-            <Select
-              displayEmpty
-              value={hubFilter}
-              onChange={(e) => setHubFilter(e.target.value)}
-              sx={{ fontFamily: "Nunito, sans-serif" }}
-            >
-              <MenuItem value="">
-                <em>All Hubs</em>
-              </MenuItem>
-              {hubs.map((hub, index) => (
-                <MenuItem key={index} value={hub} sx={{ fontFamily: "Nunito, sans-serif" }}>
-                  {hub}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
 
         <Box style={{ height: 500, width: "100%" }}>
           <DataGrid
-            rows={filteredRows}
+            rows={rows}
             columns={columns}
             pageSize={5}
             rowsPerPageOptions={[5]}
@@ -150,7 +167,6 @@ export default function HubStateData() {
               border: "2px solid #2A2F5B",
               borderRadius: 2,
               boxShadow: 2,
-
               "& .MuiDataGrid-columnHeaders": {
                 backgroundColor: "#2A2F5B",
                 color: "black",
@@ -174,30 +190,9 @@ export default function HubStateData() {
           />
         </Box>
 
-        {/* Image Dialog */}
-        <Dialog open={openImg} onClose={() => setOpenImg(false)} maxWidth="sm">
-          <DialogTitle sx={{ fontFamily: "Nunito, sans-serif" }}>
-            Image Viewer
-            <IconButton
-              aria-label="close"
-              onClick={() => setOpenImg(false)}
-              sx={{ position: "absolute", right: 8, top: 8 }}
-            >
-              <CloseIcon />
-            </IconButton>
-          </DialogTitle>
-          <DialogContent>
-            <img
-              src={imgSrc}
-              alt="Preview"
-              style={{ maxWidth: "100%", maxHeight: "400px" }}
-            />
-          </DialogContent>
-        </Dialog>
-
         {/* Map Dialog */}
         <Dialog open={openMap} onClose={() => setOpenMap(false)} maxWidth="md">
-          <DialogTitle sx={{ fontFamily: "Nunito, sans-serif" }}>
+          <DialogTitle>
             Location Map
             <IconButton
               aria-label="close"
@@ -217,6 +212,40 @@ export default function HubStateData() {
               src={`https://maps.google.com/maps?q=${mapCoords.lat},${mapCoords.lng}&z=15&output=embed`}
               allowFullScreen
             ></iframe>
+          </DialogContent>
+        </Dialog>
+
+        {/* Image Dialog */}
+        <Dialog open={openImg} onClose={() => setOpenImg(false)} maxWidth="md">
+          <DialogTitle>
+            Image Viewer
+            <IconButton
+              aria-label="close"
+              onClick={() => setOpenImg(false)}
+              sx={{ position: "absolute", right: 8, top: 8 }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent>
+            <Box position="relative">
+              <img
+                src={imgSrc}
+                alt="Preview"
+                style={{ maxWidth: "100%", maxHeight: "400px" }}
+              />
+              <Box mt={2}>
+                <Typography variant="body2">
+                  <strong>Timestamp:</strong> {imgMeta.timestamp || "N/A"}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Location:</strong> {imgMeta.latitude}, {imgMeta.longitude}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Hub:</strong> {imgMeta.hub_name || "N/A"}
+                </Typography>
+              </Box>
+            </Box>
           </DialogContent>
         </Dialog>
       </Box>

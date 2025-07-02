@@ -16,6 +16,9 @@ import HubStateData from './components/Chlorination/Hub_Dashboard/hubDataCollect
 import HubUser from './components/Chlorination/Hub_Dashboard/hubUser';
 import HubOfficerAdd from './components/Chlorination/Hub_Dashboard/hub_officer_add';
 
+// master mosquito district table router
+import MosDistrictMasterTable from './components/Dashboard/mos_dist_master'; 
+
 function App() {
   return (
     <Router>
@@ -25,8 +28,9 @@ function App() {
         <Route path="/mosquito-admin-dashboard" element={<Mos_Dashboard />} />
         <Route path="/state" element={<State />} />
         <Route path="/data" element={<StateData />} />
-       
-
+        <Route path="/mos-district-master-table" element={<MosDistrictMasterTable />} />
+        
+          {/* Chlorination routes */}
           <Route path="/chl-admin-dashboard" element={<ChlorinationDashboard />} />
           <Route path="/chlorination-state" element={<ChlorinationUser />} />
           <Route path="/chlorination-data" element={<ChlorinationStateData />} /> 

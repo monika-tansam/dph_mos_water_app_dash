@@ -64,7 +64,6 @@ export default function HubOfficerAdd() {
     }
   }, [user, fetchCollectors]);
 
-  // Handle dialog open/close
   const handleOpen = () => {
     setOpen(true);
   };
@@ -80,12 +79,10 @@ export default function HubOfficerAdd() {
     });
   };
 
-  // Handle form input changes
   const handleChange = (e) => {
     setNewUser({ ...newUser, [e.target.name]: e.target.value });
   };
 
-  // Submit new user to backend
   const handleSubmit = async () => {
     if (!user) return;
 
@@ -144,13 +141,16 @@ export default function HubOfficerAdd() {
         </Card>
       )}
 
-      {/* DataGrid Display */}
+      {/* Filtered DataGrid */}
       <Box sx={{ mt: 4, height: 400 }}>
         <Typography variant="h6" gutterBottom>
           Data Collection Users
         </Typography>
         <DataGrid
-          rows={collectors.map((c, i) => ({ id: i + 1, ...c }))}
+          rows={collectors
+            .filter((c) => c.hub_id === user?.hub_id)
+            .map((c, i) => ({ id: i + 1, ...c }))
+          }
           columns={[
             { field: "user_id", headerName: "User ID", flex: 1 },
             { field: "username", headerName: "Username", flex: 1 },
