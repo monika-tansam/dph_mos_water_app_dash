@@ -13,16 +13,6 @@ import {
 import { DataGrid } from "@mui/x-data-grid";
 import DashboardLayout from "../Hub_Dashboard/DashboardLayout";
 
-const hubDistrictMap = {
-  HUB001: [
-    "Chennai", "Tirupathur", "Viluppuram", "Kallakurichi", "Chengalpattu",
-    "Vellore", "Ranipet", "Thiruvallur", "Tiruvannamalai", "Kancheepuram", "Cuddalore"
-  ],
-  HUB002: ["Coimbatore", "Tiruppur", "Erode"],
-  HUB003: ["Salem", "Namakkal"],
-  HUB004: ["Madurai", "Dindigul"],
-};
-
 const initialForm = {
   name: "",
   district: "",
@@ -34,7 +24,9 @@ export default function RailwayStationsMasterTable() {
   const [formData, setFormData] = useState(initialForm);
   const [userHub, setUserHub] = useState("");
   const [userHubName, setUserHubName] = useState("");
+  const [hubDistrictMap, setHubDistrictMap] = useState({}); // dynamic districts
 
+  // Fetch user + hub info
   useEffect(() => {
     const loggedInUsername = localStorage.getItem("loggedInUsername");
     if (!loggedInUsername) return;
@@ -48,6 +40,20 @@ export default function RailwayStationsMasterTable() {
           setUserHubName(currentUser.hub_name || currentUser.hub_id);
         }
       });
+  }, []);
+
+  // Fetch hub-wise districts
+  useEffect(() => {
+    fetch("http://localhost:3000/dashboard/hubs-districts")
+      .then((res) => res.json())
+      .then((data) => {
+        const districtMap = {};
+        data.forEach((hubEntry) => {
+          districtMap[hubEntry.hub_id] = hubEntry.districts;
+        });
+        setHubDistrictMap(districtMap);
+      })
+      .catch((err) => console.error("Failed to fetch districts", err));
   }, []);
 
   const columns = [
@@ -134,8 +140,8 @@ export default function RailwayStationsMasterTable() {
           </DialogTitle>
           <DialogContent dividers>
             <Box display="flex" flexDirection="column" gap={2} mt={1}>
-              
               <TextField label="Hub" value={userHub} fullWidth disabled />
+
               <TextField
                 select
                 label="District"
@@ -145,12 +151,16 @@ export default function RailwayStationsMasterTable() {
                 }
                 fullWidth
               >
-                {(hubDistrictMap[userHub] || []).map((districtName) => (
-                  <MenuItem key={districtName} value={districtName}>
-                    {districtName}
+                {(hubDistrictMap[userHub] || []).map((district) => (
+                  <MenuItem
+                    key={district.district_code}
+                    value={district.district_name}
+                  >
+                    {district.district_name} ({district.district_code})
                   </MenuItem>
                 ))}
               </TextField>
+
               <TextField
                 label="Railway Station Name"
                 value={formData.name}
