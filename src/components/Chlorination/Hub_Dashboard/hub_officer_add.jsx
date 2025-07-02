@@ -120,8 +120,22 @@ export default function HubOfficerAdd() {
 
   return (
     <DashboardLayout>
+      <Box sx={{ mt: 3 }}>
+        <Typography
+          variant="h5"
+          sx={{
+            fontWeight: 600,
+            color: "#2A2F5B",
+            fontFamily: "Nunito, sans-serif",
+            mb: 3,
+          }}
+        >
+          {user?.hub_name?.toUpperCase() || "HUB"} - DATA COLLECTOR MANAGEMENT
+        </Typography>
+      </Box>
+
       {user && (
-        <Card sx={{ maxWidth: 500, mt: 3, position: "relative" }}>
+        <Card sx={{ maxWidth: 500, position: "relative" }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               Logged In Hub Officer
@@ -147,9 +161,10 @@ export default function HubOfficerAdd() {
           Data Collection Users
         </Typography>
         <DataGrid
-          rows={collectors
-            .filter((c) => c.hub_id === user?.hub_id)
-            .map((c, i) => ({ id: i + 1, ...c }))
+          rows={
+            collectors
+              .filter((c) => c.hub_id === user?.hub_id)
+              .map((c, i) => ({ id: i + 1, ...c }))
           }
           columns={[
             { field: "user_id", headerName: "User ID", flex: 1 },

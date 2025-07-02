@@ -455,19 +455,19 @@ useEffect(() => {
       border: "1px solid #ccc"
     }}
   >
-    <option value="block">Block Type Legend</option>
-    <option value="ppm">PPM Status Legend</option>
+    <option value="block">Block Type Reference</option>
+    <option value="ppm">PPM Status </option>
   </select>
 
   {legendType === "block" && (
      <div
     style={{
       display: "flex",
-      flexDirection: "column",       // Vertical layout
+      flexDirection: "column",       
       gap: "6px",
-      maxHeight: "120px",            // Limit height
-      overflowY: "auto",             // Enable scroll
-      paddingRight: "4px"            // Prevent scrollbar overlap
+      maxHeight: "120px",            
+      overflowY: "auto",            
+      paddingRight: "4px"           
     }}>
       {Object.entries(blockColorMap).map(([type, color], i) => (
         <div key={i} style={{ display: "flex", alignItems: "center", gap: "4px", width: "100%" }}>
