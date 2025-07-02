@@ -26,6 +26,7 @@ const ChlorinationSidebar = ({ isOpen, closeSidebar }) => {
     { text: "Home", icon: <HomeIcon />, href: "/chl-admin-dashboard" },
     { text: "Master Table", icon: <DashboardIcon />, href: "/chlorination-HUB-district-master-table" },
     { text: "User", icon: <DashboardIcon />, href: "/chlorination-state" },
+    //  /chlorination-corporation-master-table
     { text: "Data Collection", icon: <BarChartIcon />, href: "/chlorination-data" },
   ];
 

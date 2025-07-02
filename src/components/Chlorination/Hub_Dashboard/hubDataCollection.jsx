@@ -43,7 +43,7 @@ useEffect(() => {
   })
     .then((res) => res.json())
     .then((data) => {
-      console.log("API Response:", data);
+      // console.log("API Response:", data); --->Debugging line to check API response
       // Try this:
       if (Array.isArray(data)) {
         setRows(data); // ✅ if your backend returns array directly

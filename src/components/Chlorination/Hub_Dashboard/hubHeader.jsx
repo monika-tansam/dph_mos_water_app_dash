@@ -1,15 +1,37 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Avatar, IconButton, Menu, MenuItem, Tooltip, useMediaQuery } from "@mui/material";
+import {
+  Avatar,
+  IconButton,
+  Menu,
+  MenuItem,
+  Tooltip,
+  useMediaQuery,
+} from "@mui/material";
 import { Menu as MenuIcon } from "@mui/icons-material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import "../../Styles/main.css";
 
 const HubHeader = ({ toggleSidebar }) => {
   const [anchorEl, setAnchorEl] = useState(null);
+  const [hubName, setHubName] = useState("");
   const open = Boolean(anchorEl);
   const navigate = useNavigate();
   const isMobile = useMediaQuery("(max-width:600px)");
+
+  useEffect(() => {
+    const loggedInUsername = localStorage.getItem("loggedInUsername");
+    if (!loggedInUsername) return;
+
+    fetch("http://localhost:3000/dashboard/chl-hubusers")
+      .then((res) => res.json())
+      .then((data) => {
+        const currentUser = data.find((u) => u.username === loggedInUsername);
+        if (currentUser && currentUser.hub_name) {
+          setHubName(currentUser.hub_name);
+        }
+      });
+  }, []);
 
   const handleClick = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
@@ -20,7 +42,10 @@ const HubHeader = ({ toggleSidebar }) => {
 
   return (
     <nav className="navbar navbar-light bg-light px-3 shadow-sm header-nav">
-      <div className="d-flex align-items-center justify-content-between w-100 px-3" style={{ height: "90px" }}>
+      <div
+        className="d-flex align-items-center justify-content-between w-100 px-3"
+        style={{ height: "90px" }}
+      >
         {/* Hamburger for mobile */}
         <div className="d-flex align-items-center gap-2">
           <IconButton
@@ -32,7 +57,7 @@ const HubHeader = ({ toggleSidebar }) => {
             <MenuIcon />
           </IconButton>
         </div>
-        
+
         <img
           src="/Logo2.png"
           alt="Logo 1"
@@ -40,17 +65,27 @@ const HubHeader = ({ toggleSidebar }) => {
           style={{
             height: isMobile ? 36 : 60,
             width: "auto",
-            transition: "height 0.2s"
+            transition: "height 0.2s",
           }}
         />
-     
+
         <div className="flex-grow-1 text-center header-color header-title-wrap">
-          <h3 className="gov-title">Directorate of Public Health and Preventive Medicine</h3>
-          <h4 className="mb-0 dph-title">Water Analysis Hub Dashboard</h4>
+          <h3 className="gov-title">
+            Directorate of Public Health and Preventive Medicine
+          </h3>
+          <h4 className="mb-0 dph-title">
+            {hubName
+              ? `${hubName} Water Analysis   Dashboard`
+              : "Water Analysis Hub Dashboard"}
+          </h4>
         </div>
-        
+
         <div className="d-flex align-items-center gap-3">
-          <img src="/DPH_Logo.webp" alt="Logo 2" className="header-logo dph-logo" />
+          <img
+            src="/DPH_Logo.webp"
+            alt="Logo 2"
+            className="header-logo dph-logo"
+          />
           <Tooltip title="Account settings">
             <IconButton
               onClick={handleClick}
@@ -76,7 +111,7 @@ const HubHeader = ({ toggleSidebar }) => {
                   height: isMobile ? 26 : 32,
                   fontSize: isMobile ? 18 : 22,
                   color: "#1976d2",
-                  transition: "all 0.2s"
+                  transition: "all 0.2s",
                 }}
               >
                 <AccountCircleIcon fontSize="inherit" />
