@@ -4,7 +4,7 @@ import db from '../utils/db.js';
 import {getDashboardData,addDistrictOfficer,getDistrictData,getDistrictOfficers,addDataCollection,addChlorinationHub,addChlorinationDistrict,
   getAllHubsWithDistricts,
   addChlorinationUser,getOfficerCount,addChlorineUserDataEntry,
-  getChlorinationUsers,addChlorinationDataCollector,getChlorinationDataCollectors,addMosquitoDistrict, getMosquitoDistricts
+  getChlorinationUsers,addChlorinationDataCollector,getChlorineDataByHubId,getChlorinationDataCollectors,getChlorinationDataCollection,addMosquitoDistrict, getMosquitoDistricts
 } from '../controllers/dashboardController.js';
 
 const router = express.Router();
@@ -32,6 +32,10 @@ router.get('/chl-hubusers', getChlorinationUsers);
 router.post('/add-chl-datacollector', addChlorinationDataCollector)
 router.get('/chl-datacollector', getChlorinationDataCollectors)
 router.post('/chl_datacollection', addChlorineUserDataEntry);
+router.get('/chl_datacollection', getChlorinationDataCollection); // ✅ ADD THIS
+router.get("/chl_datacollection/hubid", getChlorineDataByHubId);
+
+
 // Chlorination prediction route
 router.get('/', (req, res) => {
   const { user_id, role, hub_id } = req.query;

@@ -163,18 +163,16 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
           mb: 2,
         }}
       >
-        <IconButton
+       <IconButton
           edge="start"
           color="inherit"
           aria-label="menu"
-          sx={{ mr: 2 }}
-          onClick={() => {
-            // Add your drawer/menu open logic here
-            alert("Hamburger menu clicked!");
-          }}
+          sx={{ mr: 2, display: { xs: "block", md: "none" } }}
+          onClick={() => setIsOpen(true)}  
         >
           <MenuIcon />
         </IconButton>
+
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
           Dashboard
         </Typography>
