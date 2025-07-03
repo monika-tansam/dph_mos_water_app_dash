@@ -151,6 +151,7 @@ useEffect(() => {
 
   return (
     <DashboardLayout>
+      <div style={{ paddingLeft: "28px" }}>
       <Box p={2}>
         <Typography variant="h5" gutterBottom fontWeight={600}>
           HUB DATA COLLECTION
@@ -249,6 +250,7 @@ useEffect(() => {
           </DialogContent>
         </Dialog>
       </Box>
+      </div>
     </DashboardLayout>
   );
 }

@@ -75,6 +75,7 @@ export default function RailwayStationsMasterTable() {
 
   return (
     <DashboardLayout>
+      <div style={{ paddingLeft: "28px" }}>
       <Box p={2}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Typography
@@ -99,7 +100,7 @@ export default function RailwayStationsMasterTable() {
           <DataGrid
             rows={rows}
             columns={columns}
-            pageSize={5}
+            pageSize={20}
             rowsPerPageOptions={[5]}
             sx={{
               fontFamily: "Nunito, sans-serif",
@@ -179,6 +180,7 @@ export default function RailwayStationsMasterTable() {
           </DialogActions>
         </Dialog>
       </Box>
+      </div>
     </DashboardLayout>
   );
 }

@@ -167,6 +167,7 @@ export default function ChlBlockTable() {
 
   return (
     <DashboardLayout>
+        <div style={{ paddingLeft: "28px" }}>
       <Box p={2}>
         <Typography
           variant="h5"
@@ -216,6 +217,7 @@ export default function ChlBlockTable() {
           />
         </Box>
       </Box>
+      </div>
     </DashboardLayout>
   );
 }

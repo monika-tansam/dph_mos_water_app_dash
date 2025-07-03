@@ -92,6 +92,7 @@ const HubDashboard = () => {
 
   return (
     <DashboardLayout>
+       <div style={{ paddingLeft: "40px" }}>
       {/* Hub Heading */}
       <div className="mb-4">
         <h2 style={{
@@ -193,6 +194,7 @@ const HubDashboard = () => {
             </ul>
           )}
         </div>
+      </div>
       </div>
     </DashboardLayout>
   );

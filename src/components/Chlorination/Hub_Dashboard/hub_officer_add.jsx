@@ -120,6 +120,7 @@ export default function HubOfficerAdd() {
 
   return (
     <DashboardLayout>
+      <div style={{ paddingLeft: "28px" }}>
       <Box sx={{ mt: 3 }}>
         <Typography
           variant="h5"
@@ -239,6 +240,7 @@ export default function HubOfficerAdd() {
           </Button>
         </DialogActions>
       </Dialog>
+      </div>
     </DashboardLayout>
   );
 }

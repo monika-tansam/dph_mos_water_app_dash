@@ -69,6 +69,7 @@ export default function MunicipalitiesMasterTable() {
 
   return (
     <DashboardLayout>
+      <div style={{ paddingLeft: "28px" }}>
       <Box p={2}>
         <Box
           display="flex"
@@ -99,7 +100,7 @@ export default function MunicipalitiesMasterTable() {
           <DataGrid
             rows={rows}
             columns={columns}
-            pageSize={5}
+            pageSize={20}
             rowsPerPageOptions={[5]}
             sx={{
               fontFamily: "Nunito, sans-serif",
@@ -178,6 +179,7 @@ export default function MunicipalitiesMasterTable() {
           </DialogActions>
         </Dialog>
       </Box>
+      </div>
     </DashboardLayout>
   );
 }
