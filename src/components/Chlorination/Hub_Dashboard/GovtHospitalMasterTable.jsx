@@ -9,19 +9,11 @@ import {
   DialogActions,
   TextField,
   MenuItem,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import DashboardLayout from "../Hub_Dashboard/DashboardLayout";
-
-const hubDistrictMap = {
-  HUB001: [
-    "Chennai", "Tirupathur", "Viluppuram", "Kallakurichi", "Chengalpattu",
-    "Vellore", "Ranipet", "Thiruvallur", "Tiruvannamalai", "Kancheepuram", "Cuddalore"
-  ],
-  HUB002: ["Coimbatore", "Tiruppur", "Erode"],
-  HUB003: ["Salem", "Namakkal"],
-  HUB004: ["Madurai", "Dindigul"],
-};
 
 const initialForm = {
   name: "",
@@ -34,7 +26,8 @@ export default function GovernmentHospitalsMasterTable() {
   const [formData, setFormData] = useState(initialForm);
   const [userHub, setUserHub] = useState("");
   const [userHubName, setUserHubName] = useState("");
-  const [user, setUser] = useState(null);
+  const [districtOptions, setDistrictOptions] = useState([]);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
 
   useEffect(() => {
     const loggedInUsername = localStorage.getItem("loggedInUsername");
@@ -45,11 +38,31 @@ export default function GovernmentHospitalsMasterTable() {
       .then((data) => {
         const currentUser = data.find((u) => u.username === loggedInUsername);
         if (currentUser) {
-          setUser(currentUser);
           setUserHub(currentUser.hub_id);
           setUserHubName(currentUser.hub_name);
+
+          // Fetch districts by hub
+          fetch(`http://localhost:3000/dashboard/chl-districts-by-hub?hub_id=${currentUser.hub_id}`)
+            .then((res) => res.json())
+            .then((districts) => {
+              setDistrictOptions(districts);
+            });
+
+          // Fetch hospitals
+          fetch("http://localhost:3000/dashboard/government-hospital-master")
+            .then((res) => res.json())
+            .then((data) => {
+              const filtered = data.filter((row) => row.hub_id === currentUser.hub_id);
+              const formatted = filtered.map((row, index) => ({
+                id: index + 1,
+                name: row.hospital_name,
+                district: row.district_name,
+              }));
+              setRows(formatted);
+            });
         }
-      });
+      })
+      .catch((err) => console.error("Error loading data:", err));
   }, []);
 
   const columns = [
@@ -59,25 +72,40 @@ export default function GovernmentHospitalsMasterTable() {
   ];
 
   const handleAdd = () => {
-    const newRow = {
-      id: rows.length + 1,
-      name: formData.name,
-      district: formData.district,
+    const payload = {
+      hub_id: userHub,
+      hub_name: userHubName,
+      district_name: formData.district,
+      hospital_name: formData.name,
     };
-    setRows([...rows, newRow]);
-    setOpenDialog(false);
-    setFormData(initialForm);
+
+    fetch("http://localhost:3000/dashboard/government-hospital-master", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .then((res) => res.json())
+      .then(() => {
+        const newRow = {
+          id: rows.length + 1,
+          name: payload.hospital_name,
+          district: payload.district_name,
+        };
+        setRows([...rows, newRow]);
+        setOpenDialog(false);
+        setFormData(initialForm);
+        setOpenSnackbar(true);
+      })
+      .catch((err) => {
+        console.error("Failed to save hospital:", err);
+        alert("Error saving data");
+      });
   };
 
   return (
     <DashboardLayout>
       <Box p={2}>
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={2}
-        >
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Typography
             variant="h5"
             sx={{
@@ -96,14 +124,7 @@ export default function GovernmentHospitalsMasterTable() {
           </Button>
         </Box>
 
-        {/* Data Grid */}
-        <Box
-          sx={{
-            height: 400,
-            width: "100%",
-            margin: "0 auto",
-          }}
-        >
+        <Box sx={{ height: 400, width: "100%", margin: "0 auto" }}>
           <DataGrid
             rows={rows}
             columns={columns}
@@ -138,43 +159,32 @@ export default function GovernmentHospitalsMasterTable() {
         </Box>
 
         {/* Add Dialog */}
-        <Dialog
-          open={openDialog}
-          onClose={() => setOpenDialog(false)}
-          maxWidth="sm"
-          fullWidth
-        >
+        <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
           <DialogTitle sx={{ fontFamily: "Nunito, sans-serif" }}>
             Add Government Hospital
           </DialogTitle>
           <DialogContent dividers>
             <Box display="flex" flexDirection="column" gap={2} mt={1}>
-
               <TextField label="Hub" value={userHub} fullWidth disabled />
-
               <TextField
                 select
                 label="District"
                 value={formData.district}
-                onChange={(e) =>
-                  setFormData({ ...formData, district: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, district: e.target.value })}
                 fullWidth
               >
-                {(hubDistrictMap[userHub] || []).map((districtName) => (
-                  <MenuItem key={districtName} value={districtName}>
-                    {districtName}
+                {districtOptions.map((district) => (
+                  <MenuItem key={district.district_code} value={district.district_name}>
+                    {district.district_name}
                   </MenuItem>
                 ))}
               </TextField>
-               <TextField
-                label="Home Name"
+              <TextField
+                label="Hospital Name"
                 value={formData.name}
-               onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-                 }
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 fullWidth
-             />
+              />
             </Box>
           </DialogContent>
           <DialogActions>
@@ -184,6 +194,22 @@ export default function GovernmentHospitalsMasterTable() {
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* Snackbar */}
+        <Snackbar
+          open={openSnackbar}
+          autoHideDuration={3000}
+          onClose={() => setOpenSnackbar(false)}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert
+            onClose={() => setOpenSnackbar(false)}
+            severity="success"
+            sx={{ width: "100%" }}
+          >
+            Hospital added successfully!
+          </Alert>
+        </Snackbar>
       </Box>
     </DashboardLayout>
   );

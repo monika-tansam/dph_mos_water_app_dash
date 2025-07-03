@@ -576,3 +576,400 @@ export const addChlorineUserDataEntry = async (req, res) => {
     return res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
+
+
+// Get districts under a specific hub
+export const getChlorinationDistrictsByHub = (req, res) => {
+  const { hub_id } = req.query;
+
+  if (!hub_id) {
+    return res.status(400).json({ error: 'Missing hub_id in query' });
+  }
+
+  try {
+    const stmt = db.prepare(`
+      SELECT district_code, district_name
+      FROM chlorination_districts 
+      WHERE hub_id = ?
+    `);
+
+    const results = stmt.all(hub_id); // Returns array of { district_code, district_name }
+
+    res.json(results); // Send full objects
+
+  } catch (err) {
+    console.error("DB error fetching districts:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+};
+
+export const addCorporationMaster = (req, res) => {
+  const { hub_id, hub_name, district_id, district_name, corporation_name } = req.body;
+
+  if (!hub_id || !hub_name || !district_id || !district_name || !corporation_name) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+    const stmt = db.prepare(`
+      INSERT INTO corporation_master 
+        (hub_id, hub_name, district_id, district_name, corporation_name)
+      VALUES (?, ?, ?, ?, ?)  
+    `);
+
+    const result = stmt.run(hub_id, hub_name, district_id, district_name, corporation_name);
+
+    res.status(201).json({ message: "Corporation added", id: result.lastInsertRowid });
+  } catch (err) {
+    console.error("Error inserting corporation master:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+
+// controllers/dashboardController.js
+export const addMunicipalityMaster = (req, res) => {
+  const { hub_id, hub_name, district_name, municipality_name } = req.body;
+
+  if (!hub_id || !hub_name || !district_name || !municipality_name) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+    const stmt = db.prepare(`
+      INSERT INTO chlorination_municipality_master (hub_id, hub_name, district_name, municipality_name)
+      VALUES (?, ?, ?, ?)
+    `);
+
+    const result = stmt.run(hub_id, hub_name, district_name, municipality_name);
+
+    res.status(201).json({ message: "Municipality added", id: result.lastInsertRowid });
+  } catch (err) {
+    console.error("Error inserting municipality:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const getMunicipalityMaster = (req, res) => {
+  try {
+    const stmt = db.prepare(`
+      SELECT id, hub_id, hub_name, district_name, municipality_name
+      FROM chlorination_municipality_master
+    `);
+    const rows = stmt.all();
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching municipalities:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// Add Town Panchayat
+export const addTownPanchayatMaster = (req, res) => {
+  const { hub_id, hub_name, district_name, townpanchayat_name } = req.body;
+
+  console.log("Incoming Town Panchayat:", req.body); // Debug log
+
+  if (!hub_id || !hub_name || !district_name || !townpanchayat_name) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+    const stmt = db.prepare(`
+      INSERT INTO chlorination_townpanchayat_master 
+      (hub_id, hub_name, district_name, townpanchayat_name)
+      VALUES (?, ?, ?, ?)
+    `);
+    const result = stmt.run(hub_id, hub_name, district_name, townpanchayat_name);
+
+    console.log("Inserted row ID:", result.lastInsertRowid); // ✅ Log insertion
+    res.status(201).json({ message: "Town Panchayat added", id: result.lastInsertRowid });
+  } catch (err) {
+    console.error("Error inserting into townpanchayat_master:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+
+// Get All Town Panchayats
+export const getTownPanchayatMaster = (req, res) => {
+  try {
+    const stmt = db.prepare(`
+      SELECT * FROM chlorination_townpanchayat_master
+    `);
+    const rows = stmt.all();
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching town panchayats:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const addGovernmentHospital = (req, res) => {
+  const { hub_id, hub_name, district_name, hospital_name } = req.body;
+
+  if (!hub_id || !hub_name || !district_name || !hospital_name) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+    const stmt = db.prepare(`
+      INSERT INTO chlorination_government_hospital_master
+      (hub_id, hub_name, district_name, hospital_name)
+      VALUES (?, ?, ?, ?)
+    `);
+    const result = stmt.run(hub_id, hub_name, district_name, hospital_name);
+    res.status(201).json({ message: "Hospital added", id: result.lastInsertRowid });
+  } catch (err) {
+    console.error("Error adding hospital:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const getGovernmentHospitals = (req, res) => {
+  try {
+    const stmt = db.prepare(`SELECT * FROM chlorination_government_hospital_master`);
+    const rows = stmt.all();
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching hospitals:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// POST /dashboard/railway-station-master
+export const addRailwayStationMaster = (req, res) => {
+  const { hub_id, hub_name, district_name, station_name } = req.body;
+
+  if (!hub_id || !hub_name || !district_name || !station_name) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+    const stmt = db.prepare(`
+      INSERT INTO chlorination_railway_station_master 
+      (hub_id, hub_name, district_name, station_name)
+      VALUES (?, ?, ?, ?)
+    `);
+    const result = stmt.run(hub_id, hub_name, district_name, station_name);
+    res.status(201).json({ message: "Railway station added", id: result.lastInsertRowid });
+  } catch (err) {
+    console.error("Error adding railway station:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// GET /dashboard/railway-station-master
+export const getRailwayStationMaster = (req, res) => {
+  try {
+    const stmt = db.prepare(`SELECT * FROM chlorination_railway_station_master`);
+    const rows = stmt.all();
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching railway stations:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// POST /dashboard/railway-station-master
+export const addApprovedHomesMaster = (req, res) => {
+  const { hub_id, hub_name, district_name, approvedhome_name } = req.body;
+
+  if (!hub_id || !hub_name || !district_name || !approvedhome_name) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+    const stmt = db.prepare(`
+      INSERT INTO chlorination_approved_home_master 
+      (hub_id, hub_name, district_name, approvedhome_name)
+      VALUES (?, ?, ?, ?)
+    `);
+    const result = stmt.run(hub_id, hub_name, district_name, approvedhome_name);
+    res.status(201).json({ message: "Approved home added", id: result.lastInsertRowid });
+  } catch (err) {
+    console.error("Error adding approved home:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// GET /dashboard/railway-station-master
+export const getApprovedHomesMaster = (req, res) => {
+  try {
+    const stmt = db.prepare(`SELECT * FROM chlorination_approved_home_master `);
+    const rows = stmt.all();
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching approved home:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const addPrisonMaster = (req, res) => {
+  const { hub_id, hub_name, district_name, prison_name } = req.body;
+
+  if (!hub_id || !hub_name || !district_name || !prison_name) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+    const stmt = db.prepare(`
+      INSERT INTO chlorination_prison_master
+      (hub_id, hub_name, district_name, prison_name)
+      VALUES (?, ?, ?, ?)
+    `);
+    const result = stmt.run(hub_id, hub_name, district_name, prison_name);
+    res.status(201).json({ message: "Prison added", id: result.lastInsertRowid });
+  } catch (err) {
+    console.error("Error adding prison:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const getPrisonMaster = (req, res) => {
+  try {
+    const stmt = db.prepare("SELECT * FROM chlorination_prison_master");
+    const rows = stmt.all();
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching prisons:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// Add new institution
+export const addGovernmentInstitutionMaster = (req, res) => {
+  const { hub_id, hub_name, district_name, institution_name } = req.body;
+
+  if (!hub_id || !hub_name || !district_name || !institution_name) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+    const stmt = db.prepare(`
+      INSERT INTO chlorination_governmentinstitution_master 
+      (hub_id, hub_name, district_name, institution_name)
+      VALUES (?, ?, ?, ?)
+    `);
+    const result = stmt.run(hub_id, hub_name, district_name, institution_name);
+    res.status(201).json({ message: "Institution added", id: result.lastInsertRowid });
+  } catch (err) {
+    console.error("Error adding institution:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// Get all institutions
+export const getGovernmentInstitutionMaster = (req, res) => {
+  try {
+    const stmt = db.prepare(`SELECT * FROM chlorination_governmentinstitution_master`);
+    const rows = stmt.all();
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching institutions:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// controllers/dashboardController.js
+
+export const addEducationalInstitutionMaster = (req, res) => {
+  const { hub_id, hub_name, district_name, institution_name } = req.body;
+
+  if (!hub_id || !hub_name || !district_name || !institution_name) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+    const stmt = db.prepare(`
+      INSERT INTO chlorination_educationalinstitution_master 
+      (hub_id, hub_name, district_name, institution_name)
+      VALUES (?, ?, ?, ?)
+    `);
+    const result = stmt.run(hub_id, hub_name, district_name, institution_name);
+    res.status(201).json({ message: "Institution added", id: result.lastInsertRowid });
+  } catch (err) {
+    console.error("Error adding educational institution:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const getEducationalInstitutionMaster = (req, res) => {
+  try {
+    const stmt = db.prepare(`
+      SELECT * FROM chlorination_educationalinstitution_master
+    `);
+    const rows = stmt.all();
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching institutions:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// Add PWD entry
+export const addPWDMaster = (req, res) => {
+  const { hub_id, hub_name, district_name, pwd_name } = req.body;
+
+  if (!hub_id || !hub_name || !district_name || !pwd_name) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+    const stmt = db.prepare(`
+      INSERT INTO chlorination_pwd_master 
+      (hub_id, hub_name, district_name, pwd_name)
+      VALUES (?, ?, ?, ?)
+    `);
+    const result = stmt.run(hub_id, hub_name, district_name, pwd_name);
+    res.status(201).json({ message: "PWD entry added", id: result.lastInsertRowid });
+  } catch (err) {
+    console.error("Error inserting PWD:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// Get all PWD entries
+export const getPWDMaster = (req, res) => {
+  try {
+    const stmt = db.prepare(`SELECT * FROM chlorination_pwd_master`);
+    const rows = stmt.all();
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching PWD records:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const addTempleFestival = (req, res) => {
+  const { hub_id, hub_name, district_name, temple_name } = req.body;
+
+  if (!hub_id || !hub_name || !district_name || !temple_name) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+    const stmt = db.prepare(`
+      INSERT INTO chlorination_templefestival_master 
+      (hub_id, hub_name, district_name, temple_name)
+      VALUES (?, ?, ?, ?)
+    `);
+    const result = stmt.run(hub_id, hub_name, district_name, temple_name);
+    res.status(201).json({ message: "Temple festival camp added", id: result.lastInsertRowid });
+  } catch (err) {
+    console.error("DB insert error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const getTempleFestivals = (req, res) => {
+  try {
+    const rows = db.prepare(`
+      SELECT * FROM chlorination_templefestival_master
+    `).all();
+    res.json(rows);
+  } catch (err) {
+    console.error("DB select error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};

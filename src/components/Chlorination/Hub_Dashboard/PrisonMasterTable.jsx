@@ -9,19 +9,11 @@ import {
   DialogActions,
   TextField,
   MenuItem,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import DashboardLayout from "../Hub_Dashboard/DashboardLayout";
-
-const hubDistrictMap = {
-  HUB001: [
-    "Chennai", "Tirupathur", "Viluppuram", "Kallakurichi", "Chengalpattu",
-    "Vellore", "Ranipet", "Thiruvallur", "Tiruvannamalai", "Kancheepuram", "Cuddalore"
-  ],
-  HUB002: ["Coimbatore", "Erode", "Tiruppur", "Nilgiris", "Salem", "Namakkal", "Karur"],
-  HUB003: ["Tiruchirappalli", "Perambalur", "Ariyalur", "Thanjavur", "Thiruvarur", "Nagapattinam", "Pudukkottai"],
-  HUB004: ["Tirunelveli", "Thoothukkudi", "Tenkasi", "Kanyakumari", "Virudhunagar", "Ramanathapuram"],
-};
 
 const initialForm = {
   name: "",
@@ -34,6 +26,8 @@ export default function PrisonMasterTable() {
   const [formData, setFormData] = useState(initialForm);
   const [userHub, setUserHub] = useState("");
   const [userHubName, setUserHubName] = useState("");
+  const [districtOptions, setDistrictOptions] = useState([]);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
 
   useEffect(() => {
     const loggedInUsername = localStorage.getItem("loggedInUsername");
@@ -41,31 +35,72 @@ export default function PrisonMasterTable() {
 
     fetch("http://localhost:3000/dashboard/chl-hubusers")
       .then((res) => res.json())
-      .then((data) => {
-        const currentUser = data.find((u) => u.username === loggedInUsername);
+      .then((users) => {
+        const currentUser = users.find((u) => u.username === loggedInUsername);
         if (currentUser) {
           setUserHub(currentUser.hub_id);
           setUserHubName(currentUser.hub_name || currentUser.hub_id);
+
+          // 1. Get district options
+          fetch(`http://localhost:3000/dashboard/chl-districts-by-hub?hub_id=${currentUser.hub_id}`)
+            .then((res) => res.json())
+            .then((districts) => {
+              setDistrictOptions(districts);
+
+              // 2. Get existing prisons
+              return fetch("http://localhost:3000/dashboard/prison-master");
+            })
+            .then((res) => res.json())
+            .then((prisons) => {
+              const filtered = prisons.filter((p) => p.hub_id === currentUser.hub_id);
+              const formatted = filtered.map((p, index) => ({
+                id: index + 1,
+                name: p.prison_name,
+                district: p.district_name,
+              }));
+              setRows(formatted);
+            });
         }
-      });
+      })
+      .catch((err) => console.error("Prison Master Load Error:", err));
   }, []);
+
+  const handleAdd = () => {
+    const payload = {
+      hub_id: userHub,
+      hub_name: userHubName,
+      district_name: formData.district,
+      prison_name: formData.name,
+    };
+
+    fetch("http://localhost:3000/dashboard/prison-master", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .then((res) => res.json())
+      .then(() => {
+        const newRow = {
+          id: rows.length + 1,
+          name: payload.prison_name,
+          district: payload.district_name,
+        };
+        setRows([...rows, newRow]);
+        setOpenDialog(false);
+        setFormData(initialForm);
+        setOpenSnackbar(true);
+      })
+      .catch((err) => {
+        console.error("Failed to save prison:", err);
+        alert("Error saving data");
+      });
+  };
 
   const columns = [
     { field: "id", headerName: "S.No", width: 80 },
     { field: "name", headerName: "Prison Name", width: 500 },
     { field: "district", headerName: "District", width: 200 },
   ];
-
-  const handleAdd = () => {
-    const newRow = {
-      id: rows.length + 1,
-      name: formData.name,
-      district: formData.district,
-    };
-    setRows([...rows, newRow]);
-    setOpenDialog(false);
-    setFormData(initialForm);
-  };
 
   return (
     <DashboardLayout>
@@ -76,6 +111,7 @@ export default function PrisonMasterTable() {
               ? `${userHubName.toUpperCase()} – PRISON MASTER DATA`
               : "PRISON MASTER DATA"}
           </Typography>
+
           <Button variant="contained" onClick={() => setOpenDialog(true)}>
             Add Prison
           </Button>
@@ -116,10 +152,9 @@ export default function PrisonMasterTable() {
         </Box>
 
         <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
-          <DialogTitle sx={{ fontFamily: "Nunito, sans-serif" }}>Add Prison</DialogTitle>
+          <DialogTitle>Add Prison</DialogTitle>
           <DialogContent dividers>
             <Box display="flex" flexDirection="column" gap={2} mt={1}>
-              
               <TextField label="Hub" value={userHub} fullWidth disabled />
               <TextField
                 select
@@ -128,9 +163,9 @@ export default function PrisonMasterTable() {
                 onChange={(e) => setFormData({ ...formData, district: e.target.value })}
                 fullWidth
               >
-                {(hubDistrictMap[userHub] || []).map((district) => (
-                  <MenuItem key={district} value={district}>
-                    {district}
+                {districtOptions.map((d) => (
+                  <MenuItem key={d.district_code} value={d.district_name}>
+                    {d.district_name}
                   </MenuItem>
                 ))}
               </TextField>
@@ -140,7 +175,6 @@ export default function PrisonMasterTable() {
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 fullWidth
               />
-              
             </Box>
           </DialogContent>
           <DialogActions>
@@ -148,6 +182,17 @@ export default function PrisonMasterTable() {
             <Button onClick={handleAdd} variant="contained">Save</Button>
           </DialogActions>
         </Dialog>
+
+        <Snackbar
+          open={openSnackbar}
+          autoHideDuration={3000}
+          onClose={() => setOpenSnackbar(false)}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert severity="success" sx={{ width: "100%" }} onClose={() => setOpenSnackbar(false)}>
+            Prison added successfully!
+          </Alert>
+        </Snackbar>
       </Box>
     </DashboardLayout>
   );

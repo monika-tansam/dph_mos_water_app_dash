@@ -11,18 +11,16 @@ db.exec(`
   );
 
 -- Fix foreign key reference
-CREATE TABLE IF NOT EXISTS district_officer_table (
-  user_id TEXT PRIMARY KEY,
-  username TEXT,
-  password TEXT,
-  district_code TEXT,
-  district_name TEXT,
-  phone_number TEXT,
-  status TEXT,
-  FOREIGN KEY (district_code) REFERENCES mosquito_district_master(district_code)
-);
-
-
+  CREATE TABLE IF NOT EXISTS district_officer_table (
+    user_id TEXT PRIMARY KEY,
+    username TEXT,
+    password TEXT,
+    district_code TEXT,
+    district_name TEXT,
+    phone_number TEXT,
+    status TEXT,
+    FOREIGN KEY (district_code) REFERENCES mosquito_district_master(district_code)
+  );
 
   CREATE TABLE IF NOT EXISTS datacollection (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,20 +35,19 @@ CREATE TABLE IF NOT EXISTS district_officer_table (
     image_base64 TEXT
   );
 
-CREATE TABLE IF NOT EXISTS chlorination_hub_users (
-  user_id TEXT PRIMARY KEY,
-  username TEXT UNIQUE,
-  email TEXT,
-  hashedPassword TEXT,
-  hub_id TEXT,
-  hub_name TEXT,           
-  phone_number TEXT,
-  address TEXT,
-  status TEXT,
-  role TEXT,
-  module TEXT
-);
-
+  CREATE TABLE IF NOT EXISTS chlorination_hub_users (
+    user_id TEXT PRIMARY KEY,
+    username TEXT UNIQUE,
+    email TEXT,
+    hashedPassword TEXT,
+    hub_id TEXT,
+    hub_name TEXT,           
+    phone_number TEXT,
+    address TEXT,
+    status TEXT,
+    role TEXT,
+    module TEXT
+  );
 
   CREATE TABLE IF NOT EXISTS chlorination_inspection_testers (
     tester_id TEXT PRIMARY KEY,
@@ -89,6 +86,106 @@ CREATE TABLE IF NOT EXISTS chlorination_hub_users (
     district_code TEXT PRIMARY KEY,
     district_name TEXT UNIQUE
   );
+
+  CREATE TABLE IF NOT EXISTS corporation_master (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hub_id TEXT NOT NULL,
+    hub_name TEXT NOT NULL,
+    district_id TEXT NOT NULL,
+    district_name TEXT NOT NULL,
+    corporation_name TEXT NOT NULL,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS chlorination_municipality_master (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  hub_id TEXT NOT NULL,
+  hub_name TEXT NOT NULL,
+  district_name TEXT NOT NULL,
+  municipality_name TEXT NOT NULL,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS chlorination_townpanchayat_master (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  hub_id TEXT NOT NULL,
+  hub_name TEXT NOT NULL,
+  district_name TEXT NOT NULL,
+  townpanchayat_name TEXT NOT NULL,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS chlorination_government_hospital_master (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  hub_id TEXT NOT NULL,
+  hub_name TEXT NOT NULL,
+  district_name TEXT NOT NULL,
+  hospital_name TEXT NOT NULL,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS chlorination_railway_station_master (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  hub_id TEXT NOT NULL,
+  hub_name TEXT NOT NULL,
+  district_name TEXT NOT NULL,
+  station_name TEXT NOT NULL,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS chlorination_approved_home_master (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  hub_id TEXT NOT NULL,
+  hub_name TEXT NOT NULL,
+  district_name TEXT NOT NULL,
+  approvedhome_name TEXT NOT NULL,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS chlorination_prison_master (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  hub_id TEXT NOT NULL,
+  hub_name TEXT NOT NULL,
+  district_name TEXT NOT NULL,
+  prison_name TEXT NOT NULL,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS chlorination_governmentinstitution_master (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hub_id TEXT NOT NULL,
+    hub_name TEXT NOT NULL,
+    district_name TEXT NOT NULL,
+    institution_name TEXT NOT NULL,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  );
+  CREATE TABLE IF NOT EXISTS chlorination_educationalinstitution_master (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  hub_id TEXT NOT NULL,
+  hub_name TEXT NOT NULL,
+  district_name TEXT NOT NULL,
+  institution_name TEXT NOT NULL,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS chlorination_pwd_master (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  hub_id TEXT NOT NULL,
+  hub_name TEXT NOT NULL,
+  district_name TEXT NOT NULL,
+  pwd_name TEXT NOT NULL,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS chlorination_templefestival_master (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  hub_id TEXT NOT NULL,
+  hub_name TEXT NOT NULL,
+  district_name TEXT NOT NULL,
+  temple_name TEXT NOT NULL,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+
 
 `);
 

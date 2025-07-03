@@ -2,9 +2,11 @@
 import express from 'express';
 import db from '../utils/db.js';
 import {getDashboardData,addDistrictOfficer,getDistrictData,getDistrictOfficers,addDataCollection,addChlorinationHub,addChlorinationDistrict,
-  getAllHubsWithDistricts,
-  addChlorinationUser,getOfficerCount,addChlorineUserDataEntry,
-  getChlorinationUsers,addChlorinationDataCollector,getChlorineDataByHubId,getChlorinationDataCollectors,getChlorinationDataCollection,addMosquitoDistrict, getMosquitoDistricts
+  getAllHubsWithDistricts,addCorporationMaster,addMunicipalityMaster,getMunicipalityMaster,addTownPanchayatMaster,addGovernmentHospital,
+  addChlorinationUser,getOfficerCount,addChlorineUserDataEntry,getChlorinationDistrictsByHub,getTownPanchayatMaster,getGovernmentHospitals,
+  getChlorinationUsers,addChlorinationDataCollector,getChlorineDataByHubId,getChlorinationDataCollectors,getChlorinationDataCollection,addMosquitoDistrict, getMosquitoDistricts,
+  addRailwayStationMaster,getRailwayStationMaster,addApprovedHomesMaster,getApprovedHomesMaster,addPrisonMaster,getPrisonMaster,addTempleFestival,
+  getGovernmentInstitutionMaster,addGovernmentInstitutionMaster,addEducationalInstitutionMaster,getEducationalInstitutionMaster,addPWDMaster,getPWDMaster,getTempleFestivals
 } from '../controllers/dashboardController.js';
 
 const router = express.Router();
@@ -23,6 +25,31 @@ router.get('/officer-count', getOfficerCount);
 router.post('/hub', addChlorinationHub);
 router.post('/district', addChlorinationDistrict);
 router.get('/hubs-districts', getAllHubsWithDistricts);
+router.get('/chl-districts-by-hub', getChlorinationDistrictsByHub);
+router.post("/corporation-master", addCorporationMaster);
+router.post("/municipality-master", addMunicipalityMaster);
+router.get("/municipality-master", getMunicipalityMaster);
+router.post("/townpanchayat-master", addTownPanchayatMaster);
+router.get("/townpanchayat-master", getTownPanchayatMaster);
+router.post("/government-hospital-master", addGovernmentHospital);
+router.get("/government-hospital-master", getGovernmentHospitals);
+router.post("/railway-station-master", addRailwayStationMaster);
+router.get("/railway-station-master", getRailwayStationMaster);
+router.post("/approved-homes-master", addApprovedHomesMaster);
+router.get("/approved-homes-master", getApprovedHomesMaster);
+router.post("/prison-master", addPrisonMaster);
+router.get("/prison-master", getPrisonMaster);
+router.get("/government-institution-master", getGovernmentInstitutionMaster);
+router.post("/government-institution-master", addGovernmentInstitutionMaster);
+router.post("/pwd-master", addPWDMaster);
+router.get("/pwd-master", getPWDMaster);
+router.post('/temple-festival-master', addTempleFestival);
+router.get('/temple-festival-master', getTempleFestivals);
+
+// routes/dashboardRoutes.js
+router.post('/educational-institution-master', addEducationalInstitutionMaster);
+router.get('/educational-institution-master', getEducationalInstitutionMaster);
+
 
 // Chlorination user creation
 router.post('/chl-hubusers', addChlorinationUser);
