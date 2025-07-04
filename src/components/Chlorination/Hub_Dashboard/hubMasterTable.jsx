@@ -12,106 +12,28 @@ const getStatusStyle = (status) => ({
   fontFamily: "Nunito, sans-serif",
 });
 
-const allRows = [
-  {
-    id: 1,
-    hub_id: "HUB001",
-    district: "Chennai",
-    corporation: 1,
-    municipalities: 1,
-    townPanchayats: 0,
-    govtHospitals: 32,
-    railwayStations: 2,
-    approvedHomes: 7,
-    prisons: 2,
-    govtInstitutions: 4,
-    educationalInstitutions: 3,
-    pwdPoondi: 0,
-    templeCamp: 0,
-    total: 51,
-    cycle1Status: "Completed",
-    cycle2Status: "In Progress",
-  },
-  {
-    id: 2,
-    hub_id: "HUB002",
-    district: "Erode",
-    corporation: 1,
-    municipalities: 5,
-    townPanchayats: 5,
-    govtHospitals: 8,
-    railwayStations: 1,
-    approvedHomes: 2,
-    prisons: 1,
-    govtInstitutions: 1,
-    educationalInstitutions: 1,
-    pwdPoondi: 0,
-    templeCamp: 0,
-    total: 24,
-    cycle1Status: "In Progress",
-    cycle2Status: "In Progress",
-  },
-  {
-    id: 3,
-    hub_id: "HUB003",
-    district: "Perambalur",
-    corporation: 1,
-    municipalities: 6,
-    townPanchayats: 14,
-    govtHospitals: 9,
-    railwayStations: 1,
-    approvedHomes: 2,
-    prisons: 1,
-    govtInstitutions: 1,
-    educationalInstitutions: 0,
-    pwdPoondi: 0,
-    templeCamp: 0,
-    total: 34,
-    cycle1Status: "Completed",
-    cycle2Status: "Completed",
-  },
-  {
-    id: 4,
-    hub_id: "HUB004",
-    district: "Thoothukudi",
-    corporation: 0,
-    municipalities: 3,
-    townPanchayats: 5,
-    govtHospitals: 5,
-    railwayStations: 1,
-    approvedHomes: 1,
-    prisons: 0,
-    govtInstitutions: 0,
-    educationalInstitutions: 0,
-    pwdPoondi: 0,
-    templeCamp: 0,
-    total: 13,
-    cycle1Status: "In Progress",
-    cycle2Status: "In Progress",
-  },
-  {
-    id: 5,
-    hub_id: "HUB001",
-    district: "Kallakurichi",
-    corporation: 1,
-    municipalities: 1,
-    townPanchayats: 0,
-    govtHospitals: 32,
-    railwayStations: 2,
-    approvedHomes: 7,
-    prisons: 2,
-    govtInstitutions: 4,
-    educationalInstitutions: 3,
-    pwdPoondi: 0,
-    templeCamp: 0,
-    total: 51,
-    cycle1Status: "Completed",
-    cycle2Status: "In Progress",
-  },
-];
-
 const columns = [
-  { field: "id", headerName: "S.No", width: 80 },
+{
+  field: "id",
+  headerName: "S.No",
+  width: 80,
+  renderCell: (params) => (
+    <Typography
+      sx={{
+        fontWeight: "bold",
+        width: "100%",
+        textAlign: "center",
+        display: "flex",
+        justifyContent: "center",
+      }}
+    >
+      {params.value}
+    </Typography>
+  ),
+  headerAlign: "center",
+  align: "center",
+},
+
   { field: "district", headerName: "District", width: 150 },
   { field: "corporation", headerName: "Corporation", width: 110 },
   { field: "municipalities", headerName: "Municipalities", width: 130 },
@@ -153,15 +75,61 @@ export default function ChlBlockTable() {
 
     fetch("http://localhost:3000/dashboard/chl-hubusers")
       .then((res) => res.json())
-      .then((data) => {
-        const currentUser = data.find((u) => u.username === loggedInUsername);
-        if (currentUser?.hub_id) {
-          const userHubId = currentUser.hub_id;
-          const userHubName = currentUser.hub_name;
-          const filtered = allRows.filter((row) => row.hub_id === userHubId);
-          setFilteredRows(filtered);
-          setUserHubName(userHubName);
-        }
+      .then((userData) => {
+        const currentUser = userData.find((u) => u.username === loggedInUsername);
+        if (!currentUser?.hub_id) return;
+
+        const userHubId = currentUser.hub_id;
+        const userHubName = currentUser.hub_name;
+        setUserHubName(userHubName);
+
+        fetch("http://localhost:3000/dashboard/chl-hub-master-data")
+          .then((res) => res.json())
+          .then((rows) => {
+            const filtered = rows.filter((row) => row.hub_id === userHubId);
+
+            const totals = {
+              corporation: 0,
+              municipalities: 0,
+              townPanchayats: 0,
+              govtHospitals: 0,
+              railwayStations: 0,
+              approvedHomes: 0,
+              prisons: 0,
+              govtInstitutions: 0,
+              educationalInstitutions: 0,
+              pwdPoondi: 0,
+              templeCamp: 0,
+              total: 0,
+            };
+
+            filtered.forEach((row) => {
+              for (const key in totals) {
+                totals[key] += row[key] || 0;
+              }
+            });
+
+            const totalRow = {
+              id: "Total",
+              district: "TOTAL",
+              corporation: totals.corporation,
+              municipalities: totals.municipalities,
+              townPanchayats: totals.townPanchayats,
+              govtHospitals: totals.govtHospitals,
+              railwayStations: totals.railwayStations,
+              approvedHomes: totals.approvedHomes,
+              prisons: totals.prisons,
+              govtInstitutions: totals.govtInstitutions,
+              educationalInstitutions: totals.educationalInstitutions,
+              pwdPoondi: totals.pwdPoondi,
+              templeCamp: totals.templeCamp,
+              total: totals.total,
+              cycle1Status: "",
+              cycle2Status: "",
+            };
+
+            setFilteredRows([...filtered, totalRow]);
+          });
       });
   }, []);
 
@@ -182,38 +150,46 @@ export default function ChlBlockTable() {
             : "HUB MASTER DATA"}
         </Typography>
 
-        <Box style={{ height: 600, width: "100%" }}>
-          <DataGrid
-            rows={filteredRows}
-            columns={columns}
-            pageSize={5}
-            rowsPerPageOptions={[5, 10]}
-            sx={{
-              fontFamily: "Nunito, sans-serif",
-              border: "2px solid #2A2F5B",
-              borderRadius: 2,
-              boxShadow: 2,
-              "& .MuiDataGrid-columnHeaders": {
-                backgroundColor: "#2A2F5B",
-                color: "black",
-                fontWeight: "bold",
-                fontSize: "1rem",
-              },
-              "& .MuiDataGrid-cell": {
-                borderBottom: "1px solid #ddd",
-                fontSize: "0.95rem",
-              },
-              "& .MuiDataGrid-row:hover": {
-                backgroundColor: "#f0f4ff",
-              },
-              "& .MuiDataGrid-footerContainer": {
-                backgroundColor: "#f9f9f9",
-              },
-              "& .MuiDataGrid-columnSeparator": {
-                visibility: "hidden",
-              },
-            }}
-          />
+        <Box style={{ height: "100%", width: "100%" }}>
+<DataGrid
+  rows={filteredRows}
+  columns={columns}
+  getRowId={(row) => row.id}
+  pageSize={5}
+  rowsPerPageOptions={[5, 10]}
+  sx={{
+    fontFamily: "Nunito, sans-serif",
+    // border: "2px solid #2A2F5B",
+    borderRadius: 2,
+    boxShadow: 2,
+    "& .MuiDataGrid-columnHeaders": {
+      backgroundColor: "#2A2F5B",
+    },
+    "& .MuiDataGrid-columnHeaderTitle": {
+      fontWeight: "bold",
+      color: "black", // optional for contrast against dark blue
+      fontSize: "16px",
+    },
+    "& .MuiDataGrid-cell": {
+      borderBottom: "1px solid #ddd",
+      fontSize: "0.95rem",
+    },
+    "& .MuiDataGrid-row:hover": {
+      backgroundColor: "#f0f4ff",
+    },
+    "& .MuiDataGrid-footerContainer": {
+      backgroundColor: "#f9f9f9",
+    },
+    "& .MuiDataGrid-columnSeparator": {
+      visibility: "hidden",
+    },
+    "& .MuiDataGrid-row[data-id='total']": {
+      backgroundColor: "#e0f7fa",
+      fontWeight: "bold",
+    },
+  }}
+/>
+
         </Box>
       </Box>
     </DashboardLayout>

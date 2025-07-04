@@ -973,3 +973,76 @@ export const getTempleFestivals = (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+export const getHubMasterData = async (req, res) => {
+  try {
+    const tables = [
+      ['corporation_master', 'corporation'],
+      ['chlorination_municipality_master', 'municipalities'],
+      ['chlorination_townpanchayat_master', 'townPanchayats'],
+      ['chlorination_government_hospital_master', 'govtHospitals'],
+      ['chlorination_railway_station_master', 'railwayStations'],
+      ['chlorination_approved_home_master', 'approvedHomes'],
+      ['chlorination_prison_master', 'prisons'],
+      ['chlorination_governmentinstitution_master', 'govtInstitutions'],
+      ['chlorination_educationalinstitution_master', 'educationalInstitutions'],
+      ['chlorination_pwd_master', 'pwdPoondi'],
+      ['chlorination_templefestival_master', 'templeCamp'],
+    ];
+
+    const masterData = {};
+
+    for (const [table, alias] of tables) {
+      const stmt = db.prepare(
+        `SELECT hub_id, district_name, COUNT(*) as ${alias} FROM ${table} GROUP BY hub_id, district_name`
+      );
+      const rows = stmt.all(); // <-- synchronous and works with better-sqlite3
+
+      for (const row of rows) {
+        const key = `${row.hub_id}_${row.district_name}`;
+        if (!masterData[key]) {
+          masterData[key] = {
+            hub_id: row.hub_id,
+            district: row.district_name,
+            corporation: 0,
+            municipalities: 0,
+            townPanchayats: 0,
+            govtHospitals: 0,
+            railwayStations: 0,
+            approvedHomes: 0,
+            prisons: 0,
+            govtInstitutions: 0,
+            educationalInstitutions: 0,
+            pwdPoondi: 0,
+            templeCamp: 0,
+            cycle1Status: "In Progress",
+            cycle2Status: "In Progress",
+          };
+        }
+        masterData[key][alias] = row[alias];
+      }
+    }
+
+    const rows = Object.values(masterData).map((entry, index) => ({
+      id: index + 1,
+      ...entry,
+      total:
+        entry.corporation +
+        entry.municipalities +
+        entry.townPanchayats +
+        entry.govtHospitals +
+        entry.railwayStations +
+        entry.approvedHomes +
+        entry.prisons +
+        entry.govtInstitutions +
+        entry.educationalInstitutions +
+        entry.pwdPoondi +
+        entry.templeCamp,
+    }));
+
+    res.json(rows);
+  } catch (error) {
+    console.error("Error in getHubMasterData:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};

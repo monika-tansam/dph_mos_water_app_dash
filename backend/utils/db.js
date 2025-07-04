@@ -184,7 +184,23 @@ CREATE TABLE IF NOT EXISTS chlorination_templefestival_master (
   temple_name TEXT NOT NULL,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
-
+  CREATE TABLE IF NOT EXISTS chl_hub_master_data (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hub_id TEXT NOT NULL,
+    hub_name TEXT NOT NULL,
+    district TEXT NOT NULL,
+    corporation INTEGER DEFAULT 0,
+    railwayStations INTEGER DEFAULT 0,
+    approvedHomes INTEGER DEFAULT 0,
+    prisons INTEGER DEFAULT 0,
+    govtInstitutions INTEGER DEFAULT 0,
+    municipalities INTEGER DEFAULT 0,
+    townPanchayats INTEGER DEFAULT 0,
+    govtHospitals INTEGER DEFAULT 0,
+    educationalInstitutions INTEGER DEFAULT 0,
+    pwdPoondi INTEGER DEFAULT 0,
+    templeCamp INTEGER DEFAULT 0
+  );
 
 
 `);
