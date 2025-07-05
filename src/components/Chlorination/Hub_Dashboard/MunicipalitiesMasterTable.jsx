@@ -110,6 +110,7 @@ useEffect(() => {
 
   return (
     <DashboardLayout>
+      <div style={{ paddingLeft: "28px" }}>
       <Box p={2}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Typography
@@ -134,7 +135,7 @@ useEffect(() => {
           <DataGrid
             rows={rows}
             columns={columns}
-            pageSize={5}
+            pageSize={20}
             rowsPerPageOptions={[5]}
             sx={{
               fontFamily: "Nunito, sans-serif",
@@ -219,6 +220,7 @@ useEffect(() => {
           </Alert>
         </Snackbar>
       </Box>
+      </div>
     </DashboardLayout>
   );
 }

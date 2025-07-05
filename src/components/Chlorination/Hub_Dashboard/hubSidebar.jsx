@@ -65,7 +65,7 @@ const HubSidebar = ({ isOpen, closeSidebar }) => {
 
   const drawerStyles = {
     boxSizing: "border-box",
-    width: 260,
+    width: 295,
     backgroundColor: "#f5f5f5",
     color: "#333",
     borderRight: "1px solid #e0e0e0",
@@ -162,7 +162,7 @@ const HubSidebar = ({ isOpen, closeSidebar }) => {
             selected={location.pathname === "/hub-corporation-master-table"}
           >
             <ListItemIcon sx={{ color: "#666" }}><BusinessIcon /></ListItemIcon>
-            <ListItemText primary="Corporation Master Data" />
+            <ListItemText primary="Corporation Data" />
           </ListItemButton>
           <ListItemButton
             component="a"
@@ -171,7 +171,7 @@ const HubSidebar = ({ isOpen, closeSidebar }) => {
             selected={location.pathname === "/hub-hospitals-master-table"}
           >
             <ListItemIcon sx={{ color: "#666" }}><LocalHospitalIcon /></ListItemIcon>
-            <ListItemText primary="Hospitals Master Data" />
+            <ListItemText primary="Hospitals Data" />
           </ListItemButton>
           <ListItemButton
             component="a"
@@ -180,7 +180,7 @@ const HubSidebar = ({ isOpen, closeSidebar }) => {
             selected={location.pathname === "/hub-educational-institutions-master-table"}
           >
             <ListItemIcon sx={{ color: "#666" }}><SchoolIcon /></ListItemIcon>
-            <ListItemText primary="Educational Institution Master Data" />
+            <ListItemText primary="Educational Institution Data" />
           </ListItemButton>
           <ListItemButton
             component="a"
@@ -189,7 +189,7 @@ const HubSidebar = ({ isOpen, closeSidebar }) => {
             selected={location.pathname === "/hub-government-institutions-master-table"}
           >
             <ListItemIcon sx={{ color: "#666" }}><AccountBalanceIcon/></ListItemIcon>
-            <ListItemText primary="Government Institution Master Data" />
+            <ListItemText primary="Government Institution Data" />
           </ListItemButton>
           <ListItemButton
             component="a"
@@ -198,7 +198,7 @@ const HubSidebar = ({ isOpen, closeSidebar }) => {
             selected={location.pathname === "/hub-prison-master-table"}
           >
             <ListItemIcon sx={{ color: "#666" }}><GavelIcon /></ListItemIcon>
-            <ListItemText primary="Prison Master Data" />
+            <ListItemText primary="Prison  Data" />
           </ListItemButton>
           <ListItemButton
             component="a"
@@ -207,7 +207,7 @@ const HubSidebar = ({ isOpen, closeSidebar }) => {
             selected={location.pathname === "/hub-approved-homes-master-table"}
           >
             <ListItemIcon sx={{ color: "#666" }}>< HomeWorkIcon/></ListItemIcon>
-            <ListItemText primary="Approved Homes Master Data" /> 
+            <ListItemText primary="Approved Homes  Data" /> 
           </ListItemButton>
           <ListItemButton
             component="a"
@@ -216,7 +216,7 @@ const HubSidebar = ({ isOpen, closeSidebar }) => {
             selected={location.pathname === "/hub-towns-master-table "}
           >
             <ListItemIcon sx={{ color: "#666" }}><StoreMallDirectoryIcon /></ListItemIcon>
-            <ListItemText primary="Town Panchayats Master Data" />
+            <ListItemText primary="Town Panchayats Data" />
           </ListItemButton>
           <ListItemButton
             component="a"
@@ -225,7 +225,7 @@ const HubSidebar = ({ isOpen, closeSidebar }) => {
             selected={location.pathname === "/hub-municipalities-master-table"}
           >
             <ListItemIcon sx={{ color: "#666" }}><LocationCityIcon/></ListItemIcon>
-            <ListItemText primary="Municipalities Master Data" /> 
+            <ListItemText primary="Municipalities Data" /> 
           </ListItemButton>
            <ListItemButton
             component="a"
@@ -234,7 +234,7 @@ const HubSidebar = ({ isOpen, closeSidebar }) => {
             selected={location.pathname === "/hub-railway-stations-master-table "}
           >
             <ListItemIcon sx={{ color: "#666" }}><TrainIcon /></ListItemIcon>
-            <ListItemText primary="RailwayStation Master Data" />
+            <ListItemText primary="RailwayStation  Data" />
           </ListItemButton>
           <ListItemButton
             component="a"
@@ -243,7 +243,7 @@ const HubSidebar = ({ isOpen, closeSidebar }) => {
             selected={location.pathname === "/hub-pwd-master-table"}
           >
             <ListItemIcon sx={{ color: "#666" }}><EngineeringIcon /></ListItemIcon>
-            <ListItemText primary="PWD(Poondi) Master Data" /> 
+            <ListItemText primary="PWD(Poondi)  Data" /> 
           </ListItemButton>
           <ListItemButton
             component="a"
@@ -252,7 +252,7 @@ const HubSidebar = ({ isOpen, closeSidebar }) => {
             selected={location.pathname === "/hub-temple-festival-master-table"}
           >
             <ListItemIcon sx={{ color: "#666" }}><TempleBuddhistIcon/></ListItemIcon>
-            <ListItemText primary="Temple(Festival Camp) Master Data" />
+            <ListItemText primary="Temple(Festival Camp) Data" />
           </ListItemButton>
         </List>
       </Collapse>

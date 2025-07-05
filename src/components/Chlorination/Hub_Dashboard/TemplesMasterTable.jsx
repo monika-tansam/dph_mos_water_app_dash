@@ -29,6 +29,7 @@ export default function TempleFestivalMasterTable() {
   const [districtOptions, setDistrictOptions] = useState([]);
   const [openSnackbar, setOpenSnackbar] = useState(false);
 
+  // Fetch user + hub info
   useEffect(() => {
     const loggedInUsername = localStorage.getItem("loggedInUsername");
     if (!loggedInUsername) return;
@@ -101,6 +102,7 @@ export default function TempleFestivalMasterTable() {
 
   return (
     <DashboardLayout>
+      <div style={{ paddingLeft: "28px" }}>
       <Box p={2}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Typography
@@ -121,7 +123,7 @@ export default function TempleFestivalMasterTable() {
           <DataGrid
             rows={rows}
             columns={columns}
-            pageSize={5}
+            pageSize={20}
             rowsPerPageOptions={[5]}
             sx={{
               fontFamily: "Nunito, sans-serif",
@@ -169,6 +171,7 @@ export default function TempleFestivalMasterTable() {
                   </MenuItem>
                 ))}
               </TextField>
+
               <TextField
                 label="Temple Name"
                 value={formData.name}
@@ -196,6 +199,7 @@ export default function TempleFestivalMasterTable() {
           </Alert>
         </Snackbar>
       </Box>
+      </div>
     </DashboardLayout>
   );
 }

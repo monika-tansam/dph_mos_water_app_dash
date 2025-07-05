@@ -100,6 +100,7 @@ const handleAdd = () => {
 
   return (
     <DashboardLayout>
+      <div style={{ paddingLeft: "28px" }}>
       <Box p={2}>
         <Box
           display="flex"
@@ -130,7 +131,7 @@ const handleAdd = () => {
           <DataGrid
             rows={rows}
             columns={columns}
-            pageSize={5}
+            pageSize={20}
             rowsPerPageOptions={[5]}
             sx={{
               fontFamily: "Nunito, sans-serif",
@@ -189,6 +190,7 @@ const handleAdd = () => {
           </DialogActions>
         </Dialog>
       </Box>
+      </div>
     </DashboardLayout>
   );
 }
