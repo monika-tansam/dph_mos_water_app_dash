@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import DashboardLayout from "./DashboardLayout";
+import TamilNaduMap from "./hubTamilNadu";
 
 const staticDistrictCount = {
   "CHENNAI HUB": 11,
@@ -91,6 +92,7 @@ const HubDashboard = () => {
 
   return (
     <DashboardLayout>
+       <div style={{ paddingLeft: "40px" }}>
       {/* Hub Heading */}
       <div className="mb-4">
         <h2 style={{
@@ -146,7 +148,7 @@ const HubDashboard = () => {
         borderRadius: "18px",
         backgroundColor: "#f9f9f9"
       }}>
-        {/* Optional: Insert map here */}
+       <TamilNaduMap/> {/* Optional: Insert map here */}
       </div>
 
       {/* Date Filter and Download */}
@@ -192,6 +194,7 @@ const HubDashboard = () => {
             </ul>
           )}
         </div>
+      </div>
       </div>
     </DashboardLayout>
   );

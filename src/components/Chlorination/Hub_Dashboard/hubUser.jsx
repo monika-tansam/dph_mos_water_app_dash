@@ -136,6 +136,7 @@ const HubUserStats = () => {
 
   return (
     <DashboardLayout>
+      <div style={{ paddingLeft: "30px" }}>
       <Box mt={4} sx={{ background: "#fff", borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)", p: 2 }}>
         <Typography variant="h6" sx={{ fontWeight: 600, color: "#2A2F5B", mb: 2 }}>
           STATE USERS
@@ -254,6 +255,7 @@ const HubUserStats = () => {
           </DialogActions>
         </Dialog>
       </Box>
+      </div>
     </DashboardLayout>
   );
 };

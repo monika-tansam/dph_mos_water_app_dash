@@ -376,59 +376,62 @@ useEffect(() => {
               </Marker>
             ))
         )}
-  {chlData.map((entry, i) => {
-  const lat = Number(entry.latitude);
-  const lng = Number(entry.longitude);
+         {chlData.map((entry, i) => {
+        const lat = Number(entry.latitude);
+        const lng = Number(entry.longitude);
+        const hubId = entry.hub_id?.toUpperCase() || "Unknown"; // ✅ safely extract hub_id
 
-  if (isNaN(lat) || isNaN(lng)) {
-    console.warn(`Skipping invalid marker at index ${i}:`, entry);
-    return null;
-  }
+        if (isNaN(lat) || isNaN(lng)) {
+          console.warn(`Skipping invalid marker at index ${i}:`, entry);
+          return null;
+        }
 
-  const timestamp = new Date(entry.timestamp);
-  const formattedDate = timestamp.toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-  const formattedTime = timestamp.toLocaleTimeString("en-IN", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  });
+        const timestamp = new Date(entry.timestamp);
+        const formattedDate = timestamp.toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+        const formattedTime = timestamp.toLocaleTimeString("en-IN", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: true,
+        });
 
-  return (
-    <Marker key={`chl-${i}`} position={[lat, lng]} icon={customIcon}>
-      <Popup maxWidth={250}>
-        <div style={{ fontFamily: "Nunito, sans-serif" }}>
-          <div><strong>Collected by:</strong> {entry.username}</div>
-         <div>
-            <strong>PPM:</strong>{" "}
-            <span style={{
-              color:
-                entry.ppm < 1.95 ? "red" :
-                entry.ppm > 2.05 ? "orange" :
-                "green",
-              fontWeight: "bold"
-            }}>
-              {entry.ppm}
-            </span>
-          </div>
-          <div><strong>Date:</strong> {formattedDate}</div>
-          <div><strong>Time:</strong> {formattedTime}</div>
-          <div><strong>Lat:</strong> {lat}</div>
-          <div><strong>Lng:</strong> {lng}</div>
-          {entry.image_url && (
-            <div style={{ marginTop: "8px" }}>
-              <img src={entry.image_url} alt="Chlorination" style={{ width: "100%", borderRadius: "6px" }} />
-            </div>
-          )}
-        </div>
-      </Popup>
-    </Marker>
-  );
-})}
+        return (
+          <Marker key={`chl-${i}`} position={[lat, lng]} icon={customIcon}>
+            <Popup maxWidth={250}>
+              <div style={{ fontFamily: "Nunito, sans-serif" }}>
+                <div><strong>Collected by:</strong> {entry.username}</div>
+                <div>
+                  <strong>PPM:</strong>{" "}
+                  <span style={{
+                    color:
+                      entry.ppm < 1.95 ? "red" :
+                      entry.ppm > 2.05 ? "orange" :
+                      "green",
+                    fontWeight: "bold"
+                  }}>
+                    {entry.ppm}
+                  </span>
+                </div>
+                <div><strong>Date:</strong> {formattedDate}</div>
+                <div><strong>Time:</strong> {formattedTime}</div>
+                <div><strong>Lat:</strong> {lat}</div>
+                <div><strong>Lng:</strong> {lng}</div>
+                <div><strong>Hub ID:</strong> {hubId}</div> 
+                {entry.image_url && (
+                  <div style={{ marginTop: "8px" }}>
+                    <img src={entry.image_url} alt="Chlorination" style={{ width: "100%", borderRadius: "6px" }} />
+                  </div>
+                )}
+              </div>
+            </Popup>
+          </Marker>
+        );
+      })}
+
 
       </MapContainer>
      <div style={{

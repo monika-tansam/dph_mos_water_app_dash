@@ -69,6 +69,7 @@ export default function GovernmentInstitutionsMasterTable() {
 
   return (
     <DashboardLayout>
+      <div style={{ paddingLeft: "28px" }}>
       <Box p={2}>
         <Box
           display="flex"
@@ -98,7 +99,7 @@ export default function GovernmentInstitutionsMasterTable() {
           <DataGrid
             rows={rows}
             columns={columns}
-            pageSize={5}
+            pageSize={20}
             rowsPerPageOptions={[5]}
             sx={{
               fontFamily: "Nunito, sans-serif",
@@ -175,6 +176,7 @@ export default function GovernmentInstitutionsMasterTable() {
           </DialogActions>
         </Dialog>
       </Box>
+      </div>
     </DashboardLayout>
   );
 }
