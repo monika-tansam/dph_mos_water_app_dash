@@ -9,13 +9,13 @@ import {
   Box,
   Divider,
   Typography,
+  IconButton,
 } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import LogoutIcon from "@mui/icons-material/Logout";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import MenuIcon from "@mui/icons-material/Menu";
-import IconButton from "@mui/material/IconButton";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const ChlorinationSidebar = ({ isOpen, closeSidebar }) => {
@@ -26,12 +26,11 @@ const ChlorinationSidebar = ({ isOpen, closeSidebar }) => {
     { text: "Home", icon: <HomeIcon />, href: "/chl-admin-dashboard" },
     { text: "Master Table", icon: <DashboardIcon />, href: "/chlorination-HUB-district-master-table" },
     { text: "User", icon: <DashboardIcon />, href: "/chlorination-state" },
-    //  /chlorination-corporation-master-table
     { text: "Data Collection", icon: <BarChartIcon />, href: "/chlorination-data" },
   ];
 
   const handleLogout = () => {
-    navigate("/"); 
+    navigate("/");
   };
 
   const drawerStyles = {
@@ -47,11 +46,32 @@ const ChlorinationSidebar = ({ isOpen, closeSidebar }) => {
   };
 
   const listItemButtonStyle = {
-    "&:hover": {
-      backgroundColor: "#e3f2fd",
-      color: "#1976d2",
+    borderRadius: "1px",
+    margin: "6px 12px",
+    padding: "10px 14px",
+    transition: "all 0.3s ease",
+    fontWeight: 500,
+    fontSize: "0.95rem",
+    letterSpacing: "0.3px",
+
+    "&.Mui-selected": {
+      backgroundColor: "rgba(13, 71, 161, 0.15)",
+      color: "#0D47A1",
+      borderLeft: "4px solid #0D47A1",
+      boxShadow: "inset 2px 0 0 #0D47A1",
       "& .MuiListItemIcon-root": {
-        color: "#1976d2",
+        color: "#0D47A1",
+      },
+    },
+    "&.Mui-selected:hover": {
+      backgroundColor: "rgba(13, 71, 161, 0.2)",
+    },
+    "&:hover": {
+      backgroundColor: "rgba(21, 101, 192, 0.08)",
+      color: "#1565c0",
+      transform: "translateX(2px)",
+      "& .MuiListItemIcon-root": {
+        color: "#1565c0",
       },
     },
   };
@@ -70,6 +90,27 @@ const ChlorinationSidebar = ({ isOpen, closeSidebar }) => {
     },
   };
 
+  const renderSidebarList = () => (
+    <List>
+      {navItems.map((item, index) => (
+        <ListItem key={index} disablePadding>
+          <ListItemButton
+            component="a"
+            href={item.href}
+            sx={listItemButtonStyle}
+            selected={location.pathname === item.href}
+            onClick={closeSidebar}
+          >
+            <ListItemIcon sx={{ color: "#666" }}>
+              {item.icon}
+            </ListItemIcon>
+            <ListItemText primary={item.text} />
+          </ListItemButton>
+        </ListItem>
+      ))}
+    </List>
+  );
+
   return (
     <>
       {/* Mobile Drawer */}
@@ -82,26 +123,7 @@ const ChlorinationSidebar = ({ isOpen, closeSidebar }) => {
           "& .MuiDrawer-paper": drawerStyles,
         }}
       >
-        <Box sx={{ flexGrow: 1 }}>
-          <List>
-            {navItems.map((item, index) => (
-              <ListItem key={index} disablePadding>
-                <ListItemButton
-                  component="a"
-                  href={item.href}
-                  onClick={closeSidebar}
-                  sx={listItemButtonStyle}
-                  selected={location.pathname === item.href}
-                >
-                  <ListItemIcon sx={{ color: "#666" }}>
-                    {item.icon}
-                  </ListItemIcon>
-                  <ListItemText primary={item.text} />
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
-        </Box>
+        <Box sx={{ flexGrow: 1 }}>{renderSidebarList()}</Box>
         <Divider />
         <Box>
           <ListItem disablePadding>
@@ -124,25 +146,7 @@ const ChlorinationSidebar = ({ isOpen, closeSidebar }) => {
           "& .MuiDrawer-paper": drawerStyles,
         }}
       >
-        <Box sx={{ flexGrow: 1 }}>
-          <List>
-            {navItems.map((item, index) => (
-              <ListItem key={index} disablePadding>
-                <ListItemButton
-                  component="a"
-                  href={item.href}
-                  sx={listItemButtonStyle}
-                  selected={location.pathname === item.href}
-                >
-                  <ListItemIcon sx={{ color: "#666" }}>
-                    {item.icon}
-                  </ListItemIcon>
-                  <ListItemText primary={item.text} />
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
-        </Box>
+        <Box sx={{ flexGrow: 1 }}>{renderSidebarList()}</Box>
         <Divider />
         <Box>
           <ListItem disablePadding>
@@ -156,22 +160,22 @@ const ChlorinationSidebar = ({ isOpen, closeSidebar }) => {
         </Box>
       </Drawer>
 
-      {/* Header with Hamburger Menu Icon */}
+      {/* Header for mobile */}
       <Box
         sx={{
-          display: "flex", // Always flex, so always visible
+          display: "flex",
           alignItems: "center",
           mb: 2,
         }}
       >
-       <IconButton
+        <IconButton
           edge="start"
           color="inherit"
           aria-label="menu"
           sx={{ mr: 2, display: { xs: "block", md: "none" } }}
-          onClick={() => setIsOpen(true)}
+          onClick={closeSidebar}
         >
-         <MenuIcon />
+          <MenuIcon />
         </IconButton>
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
           Dashboard

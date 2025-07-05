@@ -74,26 +74,61 @@ const HubSidebar = ({ isOpen, closeSidebar }) => {
     height: "100vh",
     paddingTop: "97px",
   };
+// const listItemButtonStyle = {
+//   "&.Mui-selected": {
+//     backgroundColor: "#1565c0",       // deep blue background
+//     color: "#ffffff",                 // white text
+//     "& .MuiListItemIcon-root": {
+//       color: "#ffffff",               // white icon
+//     },
+//   },
+//   "&.Mui-selected:hover": {
+//     backgroundColor: "#0d47a1",       // darker blue on hover
+//   },
+//   "&:hover": {
+//     backgroundColor: "#e3f2fd",       // light hover for non-selected
+//     color: "#1976d2",
+//     "& .MuiListItemIcon-root": {
+//       color: "#1976d2",
+//     },
+//   },
+// };
 
-  const listItemButtonStyle = {
-    "&.Mui-selected": {
-      backgroundColor: "#d0e4ff",
+const listItemButtonStyle = {
+  borderRadius: "1px",
+  margin: "6px 12px",
+  padding: "10px 14px",
+  transition: "all 0.3s ease",
+  fontWeight: 500,
+  fontSize: "0.95rem",
+  letterSpacing: "0.3px",
+  display: "flex",
+  alignItems: "center",
+
+  "&.Mui-selected": {
+    backgroundColor: "rgba(13, 71, 161, 0.15)", // smoother blue tint
+    color: "#0D47A1",
+    borderLeft: "5px solid #0D47A1",
+    boxShadow: "inset 2px 0 0 #0D47A1", // subtle inset
+    "& .MuiListItemIcon-root": {
+      color: "#0D47A1",
+    },
+  },
+
+  "&.Mui-selected:hover": {
+    backgroundColor: "rgba(13, 71, 161, 0.2)",
+  },
+
+  "&:hover": {
+    backgroundColor: "rgba(21, 101, 192, 0.08)",
+    color: "#1565c0",
+    transform: "translateX(2px)", // slight motion
+    "& .MuiListItemIcon-root": {
       color: "#1565c0",
-      "& .MuiListItemIcon-root": {
-        color: "#1565c0",
-      },
     },
-    "&.Mui-selected:hover": {
-      backgroundColor: "#bbdfff",
-    },
-    "&:hover": {
-      backgroundColor: "#e3f2fd",
-      color: "#1976d2",
-      "& .MuiListItemIcon-root": {
-        color: "#1976d2",
-      },
-    },
-  };
+  },
+};
+
 
   const logoutButtonStyle = {
     color: "#d32f2f",
@@ -213,7 +248,7 @@ const HubSidebar = ({ isOpen, closeSidebar }) => {
             component="a"
             href="/hub-towns-master-table"
             sx={{ ...listItemButtonStyle, pl: 4 }}
-            selected={location.pathname === "/hub-towns-master-table "}
+            selected={location.pathname === "/hub-towns-master-table"}
           >
             <ListItemIcon sx={{ color: "#666" }}><StoreMallDirectoryIcon /></ListItemIcon>
             <ListItemText primary="Town Panchayats Data" />
@@ -231,7 +266,7 @@ const HubSidebar = ({ isOpen, closeSidebar }) => {
             component="a"
             href="/hub-railway-stations-master-table"
             sx={{ ...listItemButtonStyle, pl: 4 }}
-            selected={location.pathname === "/hub-railway-stations-master-table "}
+            selected={location.pathname === "/hub-railway-stations-master-table"}
           >
             <ListItemIcon sx={{ color: "#666" }}><TrainIcon /></ListItemIcon>
             <ListItemText primary="RailwayStation  Data" />

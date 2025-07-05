@@ -35,17 +35,17 @@ const columns = [
 },
 
   { field: "district", headerName: "District", width: 150 },
-  { field: "corporation", headerName: "Corporation", width: 110 },
-  { field: "municipalities", headerName: "Municipalities", width: 130 },
-  { field: "townPanchayats", headerName: "Town Panchayats", width: 140 },
-  { field: "govtHospitals", headerName: "Govt. Hospitals", width: 130 },
-  { field: "railwayStations", headerName: "Railway Stations", width: 140 },
-  { field: "approvedHomes", headerName: "Approved Homes", width: 130 },
-  { field: "prisons", headerName: "Prisons", width: 100 },
-  { field: "govtInstitutions", headerName: "Govt. Institutions", width: 140 },
-  { field: "educationalInstitutions", headerName: "Educational Inst.", width: 150 },
-  { field: "pwdPoondi", headerName: "PWD (Poondi)", width: 120 },
-  { field: "templeCamp", headerName: "Temple Camp", width: 120 },
+  { field: "corporation", headerName: "Corporation", width: 150 },
+  { field: "municipalities", headerName: "Municipalities", width: 150 },
+  { field: "townPanchayats", headerName: "Town Panchayats", width: 200 },
+  { field: "govtHospitals", headerName: "Government Hospitals", width: 200 },
+  { field: "railwayStations", headerName: "Railway Stations", width: 200 },
+  { field: "approvedHomes", headerName: "Approved Homes", width: 190 },
+  { field: "prisons", headerName: "Prisons", width: 150 },
+  { field: "govtInstitutions", headerName: "Goverment Institutions", width: 250 },
+  { field: "educationalInstitutions", headerName: "Educational Institutions", width: 200 },
+  { field: "pwdPoondi", headerName: "PWD (Poondi)", width: 170 },
+  { field: "templeCamp", headerName: "Temple Camp", width: 170 },
   { field: "total", headerName: "Total", width: 100 },
   {
     field: "cycle1Status",
@@ -86,8 +86,12 @@ export default function ChlBlockTable() {
         fetch("http://localhost:3000/dashboard/chl-hub-master-data")
           .then((res) => res.json())
           .then((rows) => {
-            const filtered = rows.filter((row) => row.hub_id === userHubId);
-
+            const filtered = rows
+            .filter((row) => row.hub_id === userHubId)
+            .map((row, index) => ({
+              ...row,
+              id: index + 1, 
+            }));
             const totals = {
               corporation: 0,
               municipalities: 0,
@@ -156,7 +160,7 @@ export default function ChlBlockTable() {
   rows={filteredRows}
   columns={columns}
   getRowId={(row) => row.id}
-  pageSize={5}
+  pageSize={30}
   rowsPerPageOptions={[5, 10]}
   sx={{
     fontFamily: "Nunito, sans-serif",
