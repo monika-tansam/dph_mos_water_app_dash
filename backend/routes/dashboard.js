@@ -7,7 +7,7 @@ import {getDashboardData,addDistrictOfficer,getDistrictData,getDistrictOfficers,
   getChlorinationUsers,addChlorinationDataCollector,getChlorineDataByHubId,getChlorinationDataCollectors,getChlorinationDataCollection,addMosquitoDistrict, getMosquitoDistricts,
   addRailwayStationMaster,getRailwayStationMaster,addApprovedHomesMaster,getApprovedHomesMaster,addPrisonMaster,getPrisonMaster,addTempleFestival,
   getGovernmentInstitutionMaster,addGovernmentInstitutionMaster,addEducationalInstitutionMaster,getEducationalInstitutionMaster,addPWDMaster,getPWDMaster,getTempleFestivals,
-  getHubMasterData,
+  getHubMasterData,refreshHubMasterData,
 } from '../controllers/dashboardController.js';
 
 const router = express.Router();
@@ -52,6 +52,9 @@ router.get('/educational-institution-master', getEducationalInstitutionMaster);
 // Chlorination hub master data
 // router.get('/chl-hub-master-data', getHubMasterData);
 router.get("/chl-hub-master-data", getHubMasterData);
+
+router.post('/refresh-chl-hub-master-data', refreshHubMasterData);
+
 
 
 // Chlorination user creation

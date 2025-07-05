@@ -1046,3 +1046,95 @@ export const getHubMasterData = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+
+export const refreshHubMasterData = async (req, res) => {
+  try {
+    const tables = [
+      ['corporation_master', 'corporation'],
+      ['chlorination_municipality_master', 'municipalities'],
+      ['chlorination_townpanchayat_master', 'townPanchayats'],
+      ['chlorination_government_hospital_master', 'govtHospitals'],
+      ['chlorination_railway_station_master', 'railwayStations'],
+      ['chlorination_approved_home_master', 'approvedHomes'],
+      ['chlorination_prison_master', 'prisons'],
+      ['chlorination_governmentinstitution_master', 'govtInstitutions'],
+      ['chlorination_educationalinstitution_master', 'educationalInstitutions'],
+      ['chlorination_pwd_master', 'pwdPoondi'],
+      ['chlorination_templefestival_master', 'templeCamp'],
+    ];
+
+    const masterData = {};
+
+    for (const [table, alias] of tables) {
+      const stmt = db.prepare(
+        `SELECT hub_id, hub_name, district_name, COUNT(*) as ${alias} FROM ${table} GROUP BY hub_id, hub_name, district_name`
+      );
+      const rows = stmt.all();
+
+      for (const row of rows) {
+        const key = `${row.hub_id}_${row.district_name}`;
+        if (!masterData[key]) {
+          masterData[key] = {
+            hub_id: row.hub_id,
+            hub_name: row.hub_name,
+            district: row.district_name,
+            corporation: 0,
+            municipalities: 0,
+            townPanchayats: 0,
+            govtHospitals: 0,
+            railwayStations: 0,
+            approvedHomes: 0,
+            prisons: 0,
+            govtInstitutions: 0,
+            educationalInstitutions: 0,
+            pwdPoondi: 0,
+            templeCamp: 0,
+          };
+        }
+        masterData[key][alias] = row[alias];
+      }
+    }
+
+    const insertStmt = db.prepare(`
+      INSERT INTO chl_hub_master_data (
+        hub_id, hub_name, district,
+        corporation, railwayStations, approvedHomes, prisons,
+        govtInstitutions, municipalities, townPanchayats, govtHospitals,
+        educationalInstitutions, pwdPoondi, templeCamp
+      )
+      VALUES (
+        @hub_id, @hub_name, @district,
+        @corporation, @railwayStations, @approvedHomes, @prisons,
+        @govtInstitutions, @municipalities, @townPanchayats, @govtHospitals,
+        @educationalInstitutions, @pwdPoondi, @templeCamp
+      )
+      ON CONFLICT(hub_id, district) DO UPDATE SET
+        hub_name = excluded.hub_name,
+        corporation = excluded.corporation,
+        railwayStations = excluded.railwayStations,
+        approvedHomes = excluded.approvedHomes,
+        prisons = excluded.prisons,
+        govtInstitutions = excluded.govtInstitutions,
+        municipalities = excluded.municipalities,
+        townPanchayats = excluded.townPanchayats,
+        govtHospitals = excluded.govtHospitals,
+        educationalInstitutions = excluded.educationalInstitutions,
+        pwdPoondi = excluded.pwdPoondi,
+        templeCamp = excluded.templeCamp;
+    `);
+
+    const insertMany = db.transaction((data) => {
+      for (const entry of Object.values(data)) {
+        insertStmt.run(entry);
+      }
+    });
+
+    insertMany(masterData);
+
+    res.json({ status: 'success', message: 'chl_hub_master_data refreshed successfully' });
+  } catch (error) {
+    console.error("Error refreshing chl_hub_master_data:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
