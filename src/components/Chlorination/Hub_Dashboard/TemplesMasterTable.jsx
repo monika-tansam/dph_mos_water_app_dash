@@ -9,6 +9,8 @@ import {
   DialogActions,
   TextField,
   MenuItem,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import DashboardLayout from "../Hub_Dashboard/DashboardLayout";
@@ -24,7 +26,8 @@ export default function TempleFestivalMasterTable() {
   const [formData, setFormData] = useState(initialForm);
   const [userHub, setUserHub] = useState("");
   const [userHubName, setUserHubName] = useState("");
-  const [hubDistrictMap, setHubDistrictMap] = useState({});
+  const [districtOptions, setDistrictOptions] = useState([]);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
 
   // Fetch user + hub info
   useEffect(() => {
@@ -35,26 +38,30 @@ export default function TempleFestivalMasterTable() {
       .then((res) => res.json())
       .then((users) => {
         const currentUser = users.find((u) => u.username === loggedInUsername);
-        if (currentUser) {
-          setUserHub(currentUser.hub_id);
-          setUserHubName(currentUser.hub_name || currentUser.hub_id);
-        }
-      });
-  }, []);
+        if (!currentUser) return;
 
-  // Fetch hub-wise district list
-  useEffect(() => {
-    fetch("http://localhost:3000/dashboard/hubs-districts")
+        setUserHub(currentUser.hub_id);
+        setUserHubName(currentUser.hub_name);
+
+        return fetch(`http://localhost:3000/dashboard/chl-districts-by-hub?hub_id=${currentUser.hub_id}`);
+      })
+      .then((res) => res.json())
+      .then((districts) => {
+        setDistrictOptions(districts);
+        return fetch("http://localhost:3000/dashboard/temple-festival-master");
+      })
       .then((res) => res.json())
       .then((data) => {
-        const districtMap = {};
-        data.forEach((hubEntry) => {
-          districtMap[hubEntry.hub_id] = hubEntry.districts; 
-        });
-        setHubDistrictMap(districtMap);
+        const filtered = data.filter((row) => row.hub_id === userHub);
+        const formatted = filtered.map((row, index) => ({
+          id: index + 1,
+          name: row.temple_name,
+          district: row.district_name,
+        }));
+        setRows(formatted);
       })
-      .catch((err) => console.error("Failed to fetch districts", err));
-  }, []);
+      .catch((err) => console.error("Error loading data:", err));
+  }, [userHub]);
 
   const columns = [
     { field: "id", headerName: "S.No", width: 80 },
@@ -63,14 +70,34 @@ export default function TempleFestivalMasterTable() {
   ];
 
   const handleAdd = () => {
-    const newRow = {
-      id: rows.length + 1,
-      name: formData.name,
-      district: formData.district,
+    const payload = {
+      hub_id: userHub,
+      hub_name: userHubName,
+      district_name: formData.district,
+      temple_name: formData.name,
     };
-    setRows([...rows, newRow]);
-    setOpenDialog(false);
-    setFormData(initialForm);
+
+    fetch("http://localhost:3000/dashboard/temple-festival-master", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .then((res) => res.json())
+      .then(() => {
+        const newRow = {
+          id: rows.length + 1,
+          name: payload.temple_name,
+          district: payload.district_name,
+        };
+        setRows([...rows, newRow]);
+        setFormData(initialForm);
+        setOpenDialog(false);
+        setOpenSnackbar(true);
+      })
+      .catch((err) => {
+        console.error("Error saving temple:", err);
+        alert("Error saving data");
+      });
   };
 
   return (
@@ -80,11 +107,7 @@ export default function TempleFestivalMasterTable() {
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Typography
             variant="h5"
-            sx={{
-              fontWeight: 600,
-              color: "#2A2F5B",
-              fontFamily: "Nunito, sans-serif",
-            }}
+            sx={{ fontWeight: 600, color: "#2A2F5B", fontFamily: "Nunito, sans-serif" }}
           >
             {userHubName
               ? `${userHubName.toUpperCase()} – TEMPLE FESTIVAL CAMP MASTER DATA`
@@ -130,34 +153,21 @@ export default function TempleFestivalMasterTable() {
           />
         </Box>
 
-        <Dialog
-          open={openDialog}
-          onClose={() => setOpenDialog(false)}
-          maxWidth="sm"
-          fullWidth
-        >
-          <DialogTitle sx={{ fontFamily: "Nunito, sans-serif" }}>
-            Add Temple Festival Camp
-          </DialogTitle>
+        <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
+          <DialogTitle sx={{ fontFamily: "Nunito, sans-serif" }}>Add Temple Festival Camp</DialogTitle>
           <DialogContent dividers>
             <Box display="flex" flexDirection="column" gap={2} mt={1}>
               <TextField label="Hub" value={userHub} fullWidth disabled />
-
               <TextField
                 select
                 label="District"
                 value={formData.district}
-                onChange={(e) =>
-                  setFormData({ ...formData, district: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, district: e.target.value })}
                 fullWidth
               >
-                {(hubDistrictMap[userHub] || []).map((district) => (
-                  <MenuItem
-                    key={district.district_code}
-                    value={district.district_name}
-                  >
-                    {district.district_name} ({district.district_code})
+                {districtOptions.map((district) => (
+                  <MenuItem key={district.district_code} value={district.district_name}>
+                    {district.district_name}
                   </MenuItem>
                 ))}
               </TextField>
@@ -165,9 +175,7 @@ export default function TempleFestivalMasterTable() {
               <TextField
                 label="Temple Name"
                 value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 fullWidth
               />
             </Box>
@@ -179,6 +187,17 @@ export default function TempleFestivalMasterTable() {
             </Button>
           </DialogActions>
         </Dialog>
+
+        <Snackbar
+          open={openSnackbar}
+          autoHideDuration={3000}
+          onClose={() => setOpenSnackbar(false)}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert onClose={() => setOpenSnackbar(false)} severity="success" sx={{ width: "100%" }}>
+            Temple Camp added successfully!
+          </Alert>
+        </Snackbar>
       </Box>
       </div>
     </DashboardLayout>

@@ -9,19 +9,11 @@ import {
   DialogActions,
   TextField,
   MenuItem,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import DashboardLayout from "../Hub_Dashboard/DashboardLayout";
-
-const hubDistrictMap = {
-  HUB001: [
-    "Chennai", "Tirupathur", "Viluppuram", "Kallakurichi", "Chengalpattu",
-    "Vellore", "Ranipet", "Thiruvallur", "Tiruvannamalai", "Kancheepuram", "Cuddalore"
-  ],
-  HUB002: ["Coimbatore", "Tiruppur", "Erode"],
-  HUB003: ["Salem", "Namakkal"],
-  HUB004: ["Madurai", "Dindigul"],
-};
 
 const initialForm = {
   name: "",
@@ -34,21 +26,50 @@ export default function MunicipalitiesMasterTable() {
   const [formData, setFormData] = useState(initialForm);
   const [userHub, setUserHub] = useState("");
   const [userHubName, setUserHubName] = useState("");
+  const [districtOptions, setDistrictOptions] = useState([]);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
 
-  useEffect(() => {
-    const loggedInUsername = localStorage.getItem("loggedInUsername");
-    if (!loggedInUsername) return;
+useEffect(() => {
+  const loggedInUsername = localStorage.getItem("loggedInUsername");
+  if (!loggedInUsername) return;
 
-    fetch("http://localhost:3000/dashboard/chl-hubusers")
-      .then((res) => res.json())
-      .then((data) => {
-        const currentUser = data.find((u) => u.username === loggedInUsername);
-        if (currentUser) {
-          setUserHub(currentUser.hub_id);
-          setUserHubName(currentUser.hub_name);
-        }
-      });
-  }, []);
+  fetch("http://localhost:3000/dashboard/chl-hubusers")
+    .then((res) => res.json())
+    .then((hubUsers) => {
+      const currentUser = hubUsers.find((u) => u.username === loggedInUsername);
+      if (!currentUser) return;
+
+      setUserHub(currentUser.hub_id);
+      setUserHubName(currentUser.hub_name);
+
+      // Step 1: Fetch districts for the current hub
+      fetch(`http://localhost:3000/dashboard/chl-districts-by-hub?hub_id=${currentUser.hub_id}`)
+        .then((res) => res.json())
+        .then((districts) => {
+          setDistrictOptions(districts);
+
+          // Step 2: Now fetch all municipalities
+          return fetch("http://localhost:3000/dashboard/municipality-master");
+        })
+        .then((res) => res.json())
+        .then((municipalities) => {
+          // Step 3: Filter municipalities by hub_id
+          const filteredRows = municipalities
+            .filter((item) => item.hub_id === currentUser.hub_id)
+            .map((item, index) => ({
+              id: index + 1,
+              name: item.municipality_name,
+              district: item.district_name,
+            }));
+
+          setRows(filteredRows);
+        })
+        .catch((err) => console.error("Failed to fetch municipalities or districts:", err));
+    })
+    .catch((err) => console.error("Failed to fetch hub users:", err));
+}, []);
+
+
 
   const columns = [
     { field: "id", headerName: "S.No", width: 80 },
@@ -57,26 +78,41 @@ export default function MunicipalitiesMasterTable() {
   ];
 
   const handleAdd = () => {
-    const newRow = {
-      id: rows.length + 1,
-      name: formData.name,
-      district: formData.district,
+    const payload = {
+      hub_id: userHub,
+      hub_name: userHubName,
+      district_name: formData.district,
+      municipality_name: formData.name,
     };
-    setRows([...rows, newRow]);
-    setOpenDialog(false);
-    setFormData(initialForm);
+
+    fetch("http://localhost:3000/dashboard/municipality-master", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .then((res) => res.json())
+      .then(() => {
+        const newRow = {
+          id: rows.length + 1,
+          name: payload.municipality_name,
+          district: payload.district_name,
+        };
+        setRows([...rows, newRow]);
+        setOpenDialog(false);
+        setFormData(initialForm);
+        setOpenSnackbar(true); // ✅ Show toast
+      })
+      .catch((err) => {
+        console.error("Failed to save municipality:", err);
+        alert("Error saving data");
+      });
   };
 
   return (
     <DashboardLayout>
       <div style={{ paddingLeft: "28px" }}>
       <Box p={2}>
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={2}
-        >
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Typography
             variant="h5"
             sx={{
@@ -95,7 +131,6 @@ export default function MunicipalitiesMasterTable() {
           </Button>
         </Box>
 
-        {/* Data Grid */}
         <Box sx={{ height: 400, width: "100%", margin: "0 auto" }}>
           <DataGrid
             rows={rows}
@@ -131,21 +166,11 @@ export default function MunicipalitiesMasterTable() {
         </Box>
 
         {/* Add Dialog */}
-        <Dialog
-          open={openDialog}
-          onClose={() => setOpenDialog(false)}
-          maxWidth="sm"
-          fullWidth
-        >
-          <DialogTitle sx={{ fontFamily: "Nunito, sans-serif" }}>
-            Add Municipality
-          </DialogTitle>
+        <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
+          <DialogTitle sx={{ fontFamily: "Nunito, sans-serif" }}>Add Municipality</DialogTitle>
           <DialogContent dividers>
             <Box display="flex" flexDirection="column" gap={2} mt={1}>
-             
-
               <TextField label="Hub" value={userHub} fullWidth disabled />
-
               <TextField
                 select
                 label="District"
@@ -155,13 +180,13 @@ export default function MunicipalitiesMasterTable() {
                 }
                 fullWidth
               >
-                {(hubDistrictMap[userHub] || []).map((districtName) => (
-                  <MenuItem key={districtName} value={districtName}>
-                    {districtName}
+                {districtOptions.map((district) => (
+                  <MenuItem key={district.district_code} value={district.district_name}>
+                    {district.district_name}
                   </MenuItem>
                 ))}
               </TextField>
-               <TextField
+              <TextField
                 label="Municipality Name"
                 value={formData.name}
                 onChange={(e) =>
@@ -178,6 +203,22 @@ export default function MunicipalitiesMasterTable() {
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* ✅ Snackbar */}
+        <Snackbar
+          open={openSnackbar}
+          autoHideDuration={3000}
+          onClose={() => setOpenSnackbar(false)}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert
+            onClose={() => setOpenSnackbar(false)}
+            severity="success"
+            sx={{ width: "100%" }}
+          >
+            Municipality added successfully!
+          </Alert>
+        </Snackbar>
       </Box>
       </div>
     </DashboardLayout>
